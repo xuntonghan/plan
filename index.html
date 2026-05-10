@@ -76,6 +76,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .cday{min-width:42px;padding:6px 4px;text-align:center;border-radius:var(--radius-sm);border:1px solid var(--bg3);cursor:pointer;background:var(--bg1);transition:all .12s;flex-shrink:0}
 .cday:hover{background:var(--bg2)}
 .cday.today{border-color:var(--acc-mid);background:var(--acc-light)}
+.cday.today .cdw{color:var(--acc);font-weight:600}
+.cday.today .cdn{color:var(--acc);font-weight:700}
 .cday.sel{background:var(--acc);border-color:var(--acc)}
 .cday.sel .cdw,.cday.sel .cdn{color:#fff}
 .cdw{font-size:10px;color:var(--txt2)}
@@ -84,11 +86,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .cdot{width:5px;height:5px;border-radius:50%;background:var(--acc-mid);margin:3px auto 0}
 /* ---- SCHED LAYOUT ---- */
 .sched-layout{display:flex;flex:1;overflow:hidden}
-.sched-wrap{flex:1;overflow-y:auto;position:relative}
+.sched-wrap{flex:1;overflow-y:auto;position:relative;isolation:isolate}
 .sched-wrap::-webkit-scrollbar{width:4px}
 .sched-wrap::-webkit-scrollbar-thumb{background:var(--bg3)}
-.bg-layer{position:absolute;inset:0;background-size:cover;background-position:center;pointer-events:none;z-index:0}
-.sched-inner{position:relative;z-index:1}
+.bg-layer{position:fixed;inset:0;background-size:cover;background-position:center;background-attachment:fixed;pointer-events:none;z-index:0}
+.sched-inner{position:relative;z-index:1;min-height:100%}
 /* ---- TIMELINE ---- */
 .timeline{display:grid;grid-template-columns:44px 1fr}
 .hlbl{font-size:10px;color:var(--txt3);text-align:right;padding-right:8px;height:var(--slot);line-height:var(--slot);border-right:1px solid var(--bg3);font-family:var(--mono)}
@@ -168,6 +170,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 /* ---- DETAIL BAR ---- */
 .detail-bar{padding:11px 14px;border-top:1px solid var(--bg3);flex-shrink:0;background:var(--bg2);display:none}
 .detail-bar.open{display:block}
+@media(max-width:600px){.detail-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;padding-bottom:calc(11px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,.15)}.detail-bar.open{display:block}}
 .detail-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .detail-row input[type=text]{flex:1;min-width:100px}
 .detail-row input[type=time]{width:86px;flex:none}
@@ -250,9 +253,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   .bottom-nav{display:flex}
   .rpanel{display:none}
   .content{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
-  .topbar{padding:8px 10px}
+  .topbar{padding:8px 10px;gap:4px}
   .cal-strip{padding:7px 10px 6px}
   .mob-show{display:flex!important}
+  .sched-wrap{padding-bottom:0}
+  /* 当 detail-bar 打开时给 sched 留空间 */
+  .detail-bar.open~* .sched-layout,.page-schedule.detail-open .sched-layout{padding-bottom:120px}
 }
 @media(min-width:601px){
   .mob-only{display:none!important}
@@ -262,7 +268,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   .rpanel{width:230px}
   .sidebar{width:180px}
 }
-.btn-nav{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--acc-mid);font-size:20px;color:var(--acc);background:var(--acc-light);flex-shrink:0;transition:all .15s}
+.btn-nav{min-width:44px;height:36px;padding:0 8px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;gap:2px;border:1.5px solid var(--acc-mid);font-size:18px;color:var(--acc);background:var(--acc-light);flex-shrink:0;transition:all .15s}
 .btn-nav:hover{background:var(--acc);color:#fff}
 </style>
 </head>
@@ -290,9 +296,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <!-- SCHEDULE PAGE -->
 <div class="page active" id="page-schedule" style="flex-direction:column">
   <div class="topbar">
-    <button class="btn-nav" onclick="shiftWeek(-1)" title="上一周"><i class="ti ti-chevron-left"></i></button>
+    <button class="btn-nav" onclick="shiftWeek(-1)" title="上一周" aria-label="上一周" style="gap:2px;font-size:16px"><i class="ti ti-chevron-left"></i><span style="font-size:9px;font-weight:600;letter-spacing:.02em;line-height:1">上周</span></button>
     <div style="text-align:center;min-width:115px"><div style="font-size:14px;font-weight:600" id="week-label"></div><div style="font-size:10px;color:var(--txt2);margin-top:1px" id="week-sub"></div></div>
-    <button class="btn-nav" onclick="shiftWeek(1)" title="下一周"><i class="ti ti-chevron-right"></i></button>
+    <button class="btn-nav" onclick="shiftWeek(1)" title="下一周" aria-label="下一周" style="gap:2px;font-size:16px"><span style="font-size:9px;font-weight:600;letter-spacing:.02em;line-height:1">下周</span><i class="ti ti-chevron-right"></i></button>
     <button class="btn-today" onclick="goToday()"><i class="ti ti-home"></i> 今天</button>
     <div style="display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--radius-full)"><button class="vbtn" id="vbtn-day" onclick="setView('day')" style="border:none">日视图</button><button class="vbtn active" id="vbtn-week" onclick="setView('week')" style="border:none">周视图</button></div>
     <div class="spacer"></div>
@@ -555,7 +561,12 @@ function formHTML(p=''){
   <div id="${p}wr" style="display:none">
     <div class="frow"><label>从</label><input type="date" id="${p}rs" style="flex:1"/></div>
     <div class="frow"><label>到</label><input type="date" id="${p}re" style="flex:1"/></div>
-    <div class="frow"><label>每周</label><select id="${p}rdow" style="flex:1"><option value="0">周日</option><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option></select></div>
+    <div class="frow" style="flex-direction:column;align-items:flex-start;gap:5px">
+      <label>重复日（可多选）</label>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">
+        ${['日','一','二','三','四','五','六'].map((d,i)=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:3px 8px;border:1px solid var(--bg3);border-radius:var(--radius-full)"><input type="checkbox" class="${p}rdow-cb" value="${i}" style="accent-color:var(--acc)"/> 周${d}</label>`).join('')}
+      </div>
+    </div>
   </div>
   <div id="${p}ue" style="display:none">
     <div class="frow"><input type="text" id="${p}un" placeholder="备注（可选）…" style="flex:1"/></div>
@@ -753,12 +764,35 @@ function renderListInto(body){
       <div class="tli-sub">${t.start}–${t.end}${ds} <span class="badge ${bc}">${sl}</span></div></div>
       <span class="tval" id="tv-${t.id}">${ts}</span>
       <div class="tli-btns">
-        ${t.status!=='done'?`<button onclick="toggleTimer('${t.id}')" title="计时"><i class="ti ti-${td.running?'player-pause':'player-play'}"></i></button>`:''}
-        ${t.status!=='done'?`<button onclick="markDone('${t.id}')" title="完成"><i class="ti ti-check"></i></button>`:''}
-        <button onclick="delTask('${t.id}')" title="删除"><i class="ti ti-trash"></i></button>
+        ${t.status!=='done'?`<button class="tli-btn-timer" data-id="${t.id}" title="计时"><i class="ti ti-${td.running?'player-pause':'player-play'}"></i></button>`:''}
+        ${t.status!=='done'?`<button class="tli-btn-done" data-id="${t.id}" title="完成"><i class="ti ti-check"></i></button>`:''}
+        <button class="tli-btn-del" data-id="${t.id}" title="删除" ${t.recur?`data-recurid="${t.recurId||t.id}"`:''}>
+          <i class="ti ti-trash"></i>
+        </button>
       </div>`;
     body.appendChild(el);
   });
+  // 事件委托：统一处理按钮点击
+  body.addEventListener('click', function(e){
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    if(!id) return;
+    if(btn.classList.contains('tli-btn-timer')){toggleTimer(id);}
+    else if(btn.classList.contains('tli-btn-done')){markDone(id);}
+    else if(btn.classList.contains('tli-btn-del')){
+      const recurId = btn.dataset.recurid;
+      if(recurId){
+        // 询问是删除单个还是全部同系列
+        const choice = confirm('这是每周固定任务\n\n点"确定"删除【全部同系列】\n点"取消"只删除【这一条】');
+        if(choice){ delRecur(recurId); } else { delTask(id); }
+      } else {
+        delTask(id);
+      }
+    }
+  },{once:false});
+  // 防止重复绑定
+  body._delegated = true;
 }
 
 function renderFSInto(body){
@@ -817,14 +851,17 @@ function addTask(p=''){
   if(type==='weekly'){
     const rs=(document.getElementById(p+'rs')||{}).value;
     const re=(document.getElementById(p+'re')||{}).value;
-    const dow=parseInt((document.getElementById(p+'rdow')||{}).value||0);
+    // 读取多选的星期
+    const cbs=document.querySelectorAll('.'+p+'rdow-cb:checked');
+    const dows=[...cbs].map(cb=>parseInt(cb.value));
     if(!rs||!re){toast('请选择起止日期');return;}
+    if(!dows.length){toast('请至少选择一个重复日');return;}
     let d=new Date(rs+'T00:00:00');const eD=new Date(re+'T00:00:00');let cnt=0;
-    while(d<=eD&&cnt<200){
-      if(d.getDay()===dow)gt(d).push({id:'r'+Date.now()+'_'+(cnt++),title,start,end,color,status:'todo',recur:true,recurId:id});
+    while(d<=eD&&cnt<500){
+      if(dows.includes(d.getDay()))gt(d).push({id:'r'+Date.now()+'_'+(cnt++),title,start,end,color,status:'todo',recur:true,recurId:id});
       d=new Date(d.getTime()+86400000);cnt++;
     }
-    toast('每周固定任务已添加');
+    toast(`每周固定任务已添加（${dows.length}天/周）`);
   } else if(type==='urgent'){
     const note=(document.getElementById(p+'un')||{}).value?.trim()||'';
     const dl=(document.getElementById(p+'ud')||{}).value||'';
@@ -858,6 +895,12 @@ function markDone(id){
 function delTask(id){
   Object.keys(tasks).forEach(k=>{tasks[k]=tasks[k].filter(t=>t.id!==id);});
   urgents=urgents.filter(x=>x.id!==id);delete timers[id];updateUrgBadge();saveData();render();
+  toast('已删除');
+}
+function delRecur(recurId){
+  // 删除所有 recurId 相同的任务
+  Object.keys(tasks).forEach(k=>{tasks[k]=tasks[k].filter(t=>!(t.recurId===recurId||t.id===recurId));});
+  saveData();render();toast('已删除全部同系列任务');
 }
 
 // =============================================

@@ -755,44 +755,60 @@ function renderListInto(body){
     const c=gc(t.color);
     const td=timers[t.id]||{elapsed:0,running:false};
     const s=Math.floor((td.elapsed+(td.running?Date.now()-td.startTs:0))/1000);
-    const ts=Math.floor(s/3600)+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+    const tStr=Math.floor(s/3600)+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
     const sl={todo:'待开始',doing:'进行中',done:'已完成',overdue:'已过期'}[t.status]||'待开始';
     const bc='b-'+(t.status||'todo');
-    const ds=isWeek&&t._d?` · ${t._d.getMonth()+1}/${t._d.getDate()}`:'';
-    el.innerHTML=`<div class="tli-bar" style="background:${c.bd}"></div>
-      <div class="tli-info"><div class="tli-name">${esc(t.title)}</div>
-      <div class="tli-sub">${t.start}–${t.end}${ds} <span class="badge ${bc}">${sl}</span></div></div>
-      <span class="tval" id="tv-${t.id}">${ts}</span>
-      <div class="tli-btns">
-        ${t.status!=='done'?`<button class="tli-btn-timer" data-id="${t.id}" title="计时"><i class="ti ti-${td.running?'player-pause':'player-play'}"></i></button>`:''}
-        ${t.status!=='done'?`<button class="tli-btn-done" data-id="${t.id}" title="完成"><i class="ti ti-check"></i></button>`:''}
-        <button class="tli-btn-del" data-id="${t.id}" title="删除" ${t.recur?`data-recurid="${t.recurId||t.id}"`:''}>
-          <i class="ti ti-trash"></i>
-        </button>
-      </div>`;
+    const ds=isWeek&&t._d?' · '+(t._d.getMonth()+1)+'/'+(t._d.getDate()):'';
+
+    // 颜色条
+    const bar=document.createElement('div');bar.className='tli-bar';bar.style.background=c.bd;
+
+    // 信息区
+    const info=document.createElement('div');info.className='tli-info';
+    info.innerHTML='<div class="tli-name">'+esc(t.title)+'</div>'
+      +'<div class="tli-sub">'+t.start+'–'+t.end+ds+' <span class="badge '+bc+'">'+sl+'</span></div>';
+
+    // 计时显示
+    const tval=document.createElement('span');tval.className='tval';tval.id='tv-'+t.id;tval.textContent=tStr;
+
+    // 按钮区
+    const btns=document.createElement('div');btns.className='tli-btns';
+
+    if(t.status!=='done'){
+      // 计时按钮
+      const btnT=document.createElement('button');
+      btnT.title='计时';
+      btnT.innerHTML='<i class="ti ti-'+(td.running?'player-pause':'player-play')+'"></i>';
+      btnT.onclick=function(e){e.stopPropagation();toggleTimer(t.id);};
+      btns.appendChild(btnT);
+
+      // 完成按钮
+      const btnD=document.createElement('button');
+      btnD.title='完成';
+      btnD.innerHTML='<i class="ti ti-check"></i>';
+      btnD.onclick=function(e){e.stopPropagation();markDone(t.id);};
+      btns.appendChild(btnD);
+    }
+
+    // 删除按钮
+    const btnX=document.createElement('button');
+    btnX.title='删除';
+    btnX.innerHTML='<i class="ti ti-trash"></i>';
+    btnX.style.color='var(--red)';
+    btnX.onclick=function(e){
+      e.stopPropagation();
+      if(t.recur){
+        const choice=confirm('这是每周固定任务\n\n确定 → 删除全部同系列\n取消 → 只删这一条');
+        if(choice){delRecur(t.recurId||t.id);}else{delTask(t.id);}
+      } else {
+        delTask(t.id);
+      }
+    };
+    btns.appendChild(btnX);
+
+    el.appendChild(bar);el.appendChild(info);el.appendChild(tval);el.appendChild(btns);
     body.appendChild(el);
   });
-  // 事件委托：统一处理按钮点击
-  body.addEventListener('click', function(e){
-    const btn = e.target.closest('button');
-    if(!btn) return;
-    const id = btn.dataset.id;
-    if(!id) return;
-    if(btn.classList.contains('tli-btn-timer')){toggleTimer(id);}
-    else if(btn.classList.contains('tli-btn-done')){markDone(id);}
-    else if(btn.classList.contains('tli-btn-del')){
-      const recurId = btn.dataset.recurid;
-      if(recurId){
-        // 询问是删除单个还是全部同系列
-        const choice = confirm('这是每周固定任务\n\n点"确定"删除【全部同系列】\n点"取消"只删除【这一条】');
-        if(choice){ delRecur(recurId); } else { delTask(id); }
-      } else {
-        delTask(id);
-      }
-    }
-  },{once:false});
-  // 防止重复绑定
-  body._delegated = true;
 }
 
 function renderFSInto(body){

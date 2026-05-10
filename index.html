@@ -979,17 +979,56 @@ function setTheme(t){
 }
 
 // =============================================
-// DATA
+// DATA — Supabase 云同步
 // =============================================
-function saveData(){
-  try{localStorage.setItem('planner_tasks',JSON.stringify(tasks));localStorage.setItem('planner_urgents',JSON.stringify(urgents));}catch(e){}
+const SB_URL='https://gxedinhlhgegbudblrnt.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4ZWRpbmhsaGdlZ2J1ZGJscm50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDU0MjcsImV4cCI6MjA5Mzk4MTQyN30.61yxZTVfOqup3s9hCKtWDyVMxCFCDFwZoYgJKGlNJ_k';
+const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+
+async function sbGet(key){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/planner_data?key=eq.'+encodeURIComponent(key)+'&select=value',{headers:SB_HEADERS});
+    const d=await r.json();
+    return d&&d[0]?d[0].value:null;
+  }catch(e){return null;}
 }
-function loadData(){
+
+async function sbSet(key,value){
+  try{
+    await fetch(SB_URL+'/rest/v1/planner_data',{
+      method:'POST',
+      headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({key,value,updated_at:new Date().toISOString()})
+    });
+  }catch(e){}
+}
+
+let saveTimer=null;
+function saveData(){
+  // 同时保存到 localStorage（离线备用）
+  try{localStorage.setItem('planner_tasks',JSON.stringify(tasks));localStorage.setItem('planner_urgents',JSON.stringify(urgents));}catch(e){}
+  // 防抖：1秒后上传到 Supabase
+  if(saveTimer)clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    await sbSet('tasks',tasks);
+    await sbSet('urgents',urgents);
+  },1000);
+}
+
+async function loadData(){
+  // 先读 localStorage 快速显示
   try{
     const t=localStorage.getItem('planner_tasks');if(t)tasks=JSON.parse(t);
     const u=localStorage.getItem('planner_urgents');if(u)urgents=JSON.parse(u);
     const th=localStorage.getItem('planner_theme');if(th)setTheme(th);
   }catch(e){}
+  // 再从 Supabase 拉最新数据
+  toast('正在同步云端数据…');
+  const [cloudTasks,cloudUrgents]=await Promise.all([sbGet('tasks'),sbGet('urgents')]);
+  if(cloudTasks){tasks=cloudTasks;localStorage.setItem('planner_tasks',JSON.stringify(tasks));}
+  if(cloudUrgents){urgents=cloudUrgents;localStorage.setItem('planner_urgents',JSON.stringify(urgents));}
+  updateUrgBadge();render();
+  toast('云端数据同步完成 ☁');
 }
 function exportData(){
   const blob=new Blob([JSON.stringify({tasks,urgents,v:2,at:new Date().toISOString()},null,2)],{type:'application/json'});
@@ -1111,8 +1150,6 @@ function render(){
   renderTaskList();renderFreeSlots();
 }
 
-loadData();
-
 // build desktop form
 document.getElementById('add-form-wrap').innerHTML=formHTML('');
 initCG('');
@@ -1130,6 +1167,9 @@ loadWeather();
 setInterval(()=>{updateClock();updateTimers();},1000);
 setInterval(()=>{chkOverdue();if(curView==='week')renderWeek();else renderDay();renderTaskList();renderFreeSlots();},30000);
 window.addEventListener('resize',()=>{const mpb=document.getElementById('mob-panel-btn');if(mpb)mpb.style.display=mob()?'flex':'none';});
+
+// 异步加载云端数据（启动时）
+loadData();
 </script>
 </body>
 </html>

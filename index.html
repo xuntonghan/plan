@@ -130,22 +130,24 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .add-btn{width:100%;padding:9px;border-radius:var(--radius-sm);background:var(--acc);color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
 .add-btn:hover{background:#235c43}
 /* ---- TASK LIST ---- */
-.tli{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid var(--bg2)}
+.tli{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--bg2);min-width:0}
 .tli:last-child{border-bottom:none}
 .tli-bar{width:4px;height:36px;border-radius:2px;flex-shrink:0}
-.tli-info{flex:1;min-width:0}
+.tli-info{flex:1;min-width:0;overflow:hidden}
 .tli-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tli-sub{font-size:11px;color:var(--txt2);margin-top:1px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.tli-btns{display:flex;gap:3px;flex-shrink:0}
+.tli-btns{display:flex;gap:3px;flex-shrink:0;margin-left:auto}
 .tli-btns button{width:28px;height:28px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:13px;border:1px solid var(--bg3);color:var(--txt1)}
 .tli-btns button:hover{background:var(--bg2)}
-.tval{font-size:11px;font-family:var(--mono);color:var(--txt2);min-width:40px;text-align:right;flex-shrink:0}
+.tval{font-size:11px;font-family:var(--mono);color:var(--txt2);min-width:36px;text-align:right;flex-shrink:0}
 .badge{font-size:10px;padding:1px 7px;border-radius:var(--radius-full);font-weight:500;display:inline-flex;align-items:center}
 .b-todo{background:var(--blue-light);color:var(--blue)}
 .b-doing{background:var(--acc-light);color:var(--acc)}
 .b-done{background:var(--bg2);color:var(--txt2)}
 .b-overdue{background:var(--red-light);color:var(--red)}
 .b-urgent{background:var(--amber-light);color:var(--amber)}
+
+@media(max-width:1100px){.tval{display:none}}
 /* ---- FREE SLOTS ---- */
 .fsi{padding:7px 0;border-bottom:1px solid var(--bg2)}
 .fsi:last-child{border-bottom:none}
@@ -249,6 +251,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 /* ---- RESPONSIVE ---- */
 @media(max-width:600px){
+  .btn-nav-txt{display:none}
   .sidebar{display:none}
   .bottom-nav{display:flex}
   .rpanel{display:none}
@@ -268,7 +271,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   .rpanel{width:230px}
   .sidebar{width:180px}
 }
-.btn-nav{min-width:44px;height:36px;padding:0 8px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;gap:2px;border:1.5px solid var(--acc-mid);font-size:18px;color:var(--acc);background:var(--acc-light);flex-shrink:0;transition:all .15s}
+.btn-nav{height:36px;padding:0 10px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;gap:5px;border:1.5px solid var(--acc-mid);font-size:16px;color:var(--acc);background:var(--acc-light);flex-shrink:0;transition:all .15s;white-space:nowrap}
+.btn-nav-txt{font-size:12px;font-weight:600;letter-spacing:.02em}
 .btn-nav:hover{background:var(--acc);color:#fff}
 </style>
 </head>
@@ -296,9 +300,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <!-- SCHEDULE PAGE -->
 <div class="page active" id="page-schedule" style="flex-direction:column">
   <div class="topbar">
-    <button class="btn-nav" onclick="shiftWeek(-1)" title="上一周" aria-label="上一周" style="gap:2px;font-size:16px"><i class="ti ti-chevron-left"></i><span style="font-size:9px;font-weight:600;letter-spacing:.02em;line-height:1">上周</span></button>
+    <button class="btn-nav" onclick="shiftWeek(-1)" title="上一周" aria-label="上一周"><i class="ti ti-arrow-left"></i> <span class="btn-nav-txt">上周</span></button>
     <div style="text-align:center;min-width:115px"><div style="font-size:14px;font-weight:600" id="week-label"></div><div style="font-size:10px;color:var(--txt2);margin-top:1px" id="week-sub"></div></div>
-    <button class="btn-nav" onclick="shiftWeek(1)" title="下一周" aria-label="下一周" style="gap:2px;font-size:16px"><span style="font-size:9px;font-weight:600;letter-spacing:.02em;line-height:1">下周</span><i class="ti ti-chevron-right"></i></button>
+    <button class="btn-nav" onclick="shiftWeek(1)" title="下一周" aria-label="下一周"><span class="btn-nav-txt">下周</span> <i class="ti ti-arrow-right"></i></button>
     <button class="btn-today" onclick="goToday()"><i class="ti ti-home"></i> 今天</button>
     <div style="display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--radius-full)"><button class="vbtn" id="vbtn-day" onclick="setView('day')" style="border:none">日视图</button><button class="vbtn active" id="vbtn-week" onclick="setView('week')" style="border:none">周视图</button></div>
     <div class="spacer"></div>

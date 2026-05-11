@@ -130,9 +130,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .add-btn{width:100%;padding:9px;border-radius:var(--radius-sm);background:var(--acc);color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
 .add-btn:hover{background:#235c43}
 /* ---- TASK LIST ---- */
-.tli{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--bg2);min-width:0}
+.tli{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid var(--bg2)}
 .tli:last-child{border-bottom:none}
-.tli-bar{width:4px;height:36px;border-radius:2px;flex-shrink:0}
+.tli-bar{width:4px;min-height:44px;border-radius:2px;flex-shrink:0;margin-top:2px}
 .tli-info{flex:1;min-width:0;overflow:hidden}
 .tli-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tli-sub{font-size:11px;color:var(--txt2);margin-top:1px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
@@ -764,53 +764,57 @@ function renderListInto(body){
     const bc='b-'+(t.status||'todo');
     const ds=isWeek&&t._d?' · '+(t._d.getMonth()+1)+'/'+(t._d.getDate()):'';
 
-    // 颜色条
+    // 左侧颜色条
     const bar=document.createElement('div');bar.className='tli-bar';bar.style.background=c.bd;
 
-    // 信息区
-    const info=document.createElement('div');info.className='tli-info';
-    info.innerHTML='<div class="tli-name">'+esc(t.title)+'</div>'
-      +'<div class="tli-sub">'+t.start+'–'+t.end+ds+' <span class="badge '+bc+'">'+sl+'</span></div>';
+    // 右侧内容区（竖向两行）
+    const right=document.createElement('div');right.style.cssText='flex:1;min-width:0;display:flex;flex-direction:column;gap:5px';
 
-    // 计时显示
-    const tval=document.createElement('span');tval.className='tval';tval.id='tv-'+t.id;tval.textContent=tStr;
+    // 第一行：标题 + 状态
+    const row1=document.createElement('div');row1.style.cssText='display:flex;align-items:center;gap:6px;min-width:0';
+    const nameEl=document.createElement('div');nameEl.style.cssText='font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';nameEl.textContent=t.title;
+    const badgeEl=document.createElement('span');badgeEl.className='badge '+bc;badgeEl.textContent=sl;
+    row1.appendChild(nameEl);row1.appendChild(badgeEl);
 
-    // 按钮区
-    const btns=document.createElement('div');btns.className='tli-btns';
+    // 第二行：时间 + 计时 + 操作按钮
+    const row2=document.createElement('div');row2.style.cssText='display:flex;align-items:center;gap:5px;flex-wrap:nowrap';
+
+    const timeEl=document.createElement('span');timeEl.style.cssText='font-size:11px;color:var(--txt2);white-space:nowrap;flex-shrink:0';
+    timeEl.textContent=t.start+'–'+t.end+(ds||'');
+
+    const tval=document.createElement('span');tval.className='tval';tval.id='tv-'+t.id;
+    tval.style.cssText='font-size:11px;font-family:var(--mono);color:var(--txt2);flex-shrink:0';
+    tval.textContent=tStr;
+
+    // 弹性空间
+    const sp=document.createElement('span');sp.style.flex='1';
+
+    // 操作按钮组
+    const btns=document.createElement('div');btns.style.cssText='display:flex;gap:4px;flex-shrink:0';
+
+    const mkBtn=(icon,color,title,fn)=>{
+      const b=document.createElement('button');
+      b.title=title;
+      b.style.cssText='width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;border:1px solid var(--bg3);background:transparent;color:'+(color||'var(--txt1)')+';cursor:pointer;flex-shrink:0';
+      b.innerHTML='<i class="ti ti-'+icon+'"></i>';
+      b.onclick=function(e){e.stopPropagation();fn();};
+      return b;
+    };
 
     if(t.status!=='done'){
-      // 计时按钮
-      const btnT=document.createElement('button');
-      btnT.title='计时';
-      btnT.innerHTML='<i class="ti ti-'+(td.running?'player-pause':'player-play')+'"></i>';
-      btnT.onclick=function(e){e.stopPropagation();toggleTimer(t.id);};
-      btns.appendChild(btnT);
-
-      // 完成按钮
-      const btnD=document.createElement('button');
-      btnD.title='完成';
-      btnD.innerHTML='<i class="ti ti-check"></i>';
-      btnD.onclick=function(e){e.stopPropagation();markDone(t.id);};
-      btns.appendChild(btnD);
+      btns.appendChild(mkBtn(td.running?'player-pause':'player-play',null,'计时',()=>toggleTimer(t.id)));
+      btns.appendChild(mkBtn('check','var(--acc)','标记完成',()=>markDone(t.id)));
     }
-
-    // 删除按钮
-    const btnX=document.createElement('button');
-    btnX.title='删除';
-    btnX.innerHTML='<i class="ti ti-trash"></i>';
-    btnX.style.color='var(--red)';
-    btnX.onclick=function(e){
-      e.stopPropagation();
+    btns.appendChild(mkBtn('trash','var(--red)','删除',()=>{
       if(t.recur){
-        const choice=confirm('这是每周固定任务\n\n确定 → 删除全部同系列\n取消 → 只删这一条');
-        if(choice){delRecur(t.recurId||t.id);}else{delTask(t.id);}
-      } else {
-        delTask(t.id);
-      }
-    };
-    btns.appendChild(btnX);
+        if(confirm('每周固定任务\n确定 → 删除全部同系列\n取消 → 只删这一条')){delRecur(t.recurId||t.id);}else{delTask(t.id);}
+      }else{delTask(t.id);}
+    }));
 
-    el.appendChild(bar);el.appendChild(info);el.appendChild(tval);el.appendChild(btns);
+    row2.appendChild(timeEl);row2.appendChild(tval);row2.appendChild(sp);row2.appendChild(btns);
+
+    right.appendChild(row1);right.appendChild(row2);
+    el.appendChild(bar);el.appendChild(right);
     body.appendChild(el);
   });
 }

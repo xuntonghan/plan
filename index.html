@@ -324,7 +324,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
     <!-- 副标题 -->
     <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:40px">
-      由 <span style="color:#74c69d;font-weight:500">Claude</span> 提供支持<br/>
       多设备同步 · 智能提醒 · 专注计时
     </div>
 
@@ -333,10 +332,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       开始使用
     </button>
 
-    <!-- 提示 -->
-    <div style="margin-top:20px;font-size:11px;color:rgba(255,255,255,.25);letter-spacing:.08em">
-      Powered by Anthropic Claude
-    </div>
+
   </div>
 
   <!-- 底部日期时间 -->
@@ -570,7 +566,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <script>
 // =============================================
-// SPLASH
+// SPLASH — 只定义函数，不立即执行（WD尚未声明）
 // =============================================
 function enterApp(){
   const splash=document.getElementById('splash');
@@ -580,18 +576,23 @@ function enterApp(){
   sessionStorage.setItem('entered','1');
 }
 function updateSplashClock(){
+  const WD_LOCAL=['日','一','二','三','四','五','六'];
   const n=new Date();
   const t=document.getElementById('splash-time');
   const d=document.getElementById('splash-date');
   if(t)t.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
-  if(d)d.textContent=n.getFullYear()+'年'+(n.getMonth()+1)+'月'+n.getDate()+'日 星期'+WD[n.getDay()];
+  if(d)d.textContent=n.getFullYear()+'年'+(n.getMonth()+1)+'月'+n.getDate()+'日 星期'+WD_LOCAL[n.getDay()];
 }
-setInterval(updateSplashClock,1000);
-updateSplashClock();
-if(sessionStorage.getItem('entered')){
-  const splash=document.getElementById('splash');
-  if(splash)splash.style.display='none';
-}
+// 立即初始化 splash（安全：不依赖其他变量）
+(function initSplash(){
+  if(sessionStorage.getItem('entered')){
+    const splash=document.getElementById('splash');
+    if(splash)splash.style.display='none';
+    return;
+  }
+  updateSplashClock();
+  setInterval(updateSplashClock,1000);
+})();
 function loadSplashBg(){
   try{
     const u=localStorage.getItem('planner_splash_bg');
@@ -1199,8 +1200,7 @@ function deleteSeriesFromDetail(){
   const ts=tasks[detailCtx.dk];if(!ts)return;
   const t=ts.find(x=>x.id===detailCtx.id);
   if(!t)return;
-  if(confirm('确定删除所有名称为"'+t.title+'"的任务吗？
-（包含所有日期的同名任务）')){
+  if(confirm('确定删除所有名称为【'+t.title+'】的全部同名任务吗？')){
     delRecur(t.title);closeDetail();
   }
 }

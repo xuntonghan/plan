@@ -329,7 +329,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="detail-bar" id="detail-bar">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <span style="font-weight:600;font-size:13px" id="dm-lbl">编辑任务</span>
-      <div style="display:flex;gap:5px"><button class="dbtn-save" onclick="saveDetail()">保存</button><button class="dbtn-close" onclick="closeDetail()">关闭</button></div>
+      <div style="display:flex;gap:5px"><button class="dbtn-save" onclick="saveDetail()">保存</button><button onclick="deleteFromDetail()" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);border:1px solid var(--red-mid);font-size:13px">删除</button><button class="dbtn-close" onclick="closeDetail()">关闭</button></div>
     </div>
     <div class="detail-row">
       <input type="text" id="dm-name" style="flex:1;min-width:100px"/>
@@ -792,22 +792,24 @@ function renderListInto(body){
     // 操作按钮组
     const btns=document.createElement('div');btns.style.cssText='display:flex;gap:4px;flex-shrink:0';
 
-    const mkBtn=(icon,color,title,fn)=>{
+    const mkBtn=(icon,label,color,title,fn)=>{
       const b=document.createElement('button');
       b.title=title;
-      b.style.cssText='width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;border:1px solid var(--bg3);background:transparent;color:'+(color||'var(--txt1)')+';cursor:pointer;flex-shrink:0';
-      b.innerHTML='<i class="ti ti-'+icon+'"></i>';
+      b.style.cssText='min-width:32px;height:26px;padding:0 6px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:12px;border:1px solid var(--bg3);background:transparent;color:'+(color||'var(--txt1)')+';cursor:pointer;flex-shrink:0;white-space:nowrap';
+      b.innerHTML='<i class="ti ti-'+icon+'" style="font-size:13px"></i><span style="font-size:11px">'+label+'</span>';
       b.onclick=function(e){e.stopPropagation();fn();};
       return b;
     };
 
     if(t.status!=='done'){
-      btns.appendChild(mkBtn(td.running?'player-pause':'player-play',null,'计时',()=>toggleTimer(t.id)));
-      btns.appendChild(mkBtn('check','var(--acc)','标记完成',()=>markDone(t.id)));
+      btns.appendChild(mkBtn(td.running?'player-pause':'player-play',td.running?'暂停':'开始',null,'计时',()=>toggleTimer(t.id)));
+      btns.appendChild(mkBtn('check','完成','var(--acc)','标记完成',()=>markDone(t.id)));
     }
-    btns.appendChild(mkBtn('trash','var(--red)','删除',()=>{
+    btns.appendChild(mkBtn('trash','删除','var(--red)','删除此任务',()=>{
       if(t.recur){
-        if(confirm('每周固定任务\n确定 → 删除全部同系列\n取消 → 只删这一条')){delRecur(t.recurId||t.id);}else{delTask(t.id);}
+        if(confirm('每周固定任务
+确定 → 删除全部同系列
+取消 → 只删这一条')){delRecur(t.recurId||t.id);}else{delTask(t.id);}
       }else{delTask(t.id);}
     }));
 
@@ -880,10 +882,17 @@ function addTask(p=''){
     const dows=[...cbs].map(cb=>parseInt(cb.value));
     if(!rs||!re){toast('请选择起止日期');return;}
     if(!dows.length){toast('请至少选择一个重复日');return;}
-    let d=new Date(rs+'T00:00:00');const eD=new Date(re+'T00:00:00');let cnt=0;
-    while(d<=eD&&cnt<500){
-      if(dows.includes(d.getDay()))gt(d).push({id:'r'+Date.now()+'_'+(cnt++),title,start,end,color,status:'todo',recur:true,recurId:id});
-      d=new Date(d.getTime()+86400000);cnt++;
+    let d=new Date(rs+'T00:00:00');const eD=new Date(re+'T00:00:00');
+    let dayOffset=0;let addedCount=0;
+    const baseId=id;
+    while(d<=eD&&dayOffset<500){
+      if(dows.includes(d.getDay())){
+        const taskId='r'+baseId+'_'+dayOffset;
+        gt(d).push({id:taskId,title,start,end,color,status:'todo',recur:true,recurId:baseId});
+        addedCount++;
+      }
+      d=new Date(d.getTime()+86400000);
+      dayOffset++;
     }
     toast(`每周固定任务已添加（${dows.length}天/周）`);
   } else if(type==='urgent'){
@@ -942,6 +951,18 @@ function openDetail(id,d){
   document.getElementById('detail-bar').classList.add('open');
 }
 function closeDetail(){document.getElementById('detail-bar').classList.remove('open');detailCtx=null;}
+function deleteFromDetail(){
+  if(!detailCtx)return;
+  const ts=tasks[detailCtx.dk];if(!ts)return;
+  const t=ts.find(x=>x.id===detailCtx.id);
+  if(t&&t.recur){
+    const choice=confirm('每周固定任务\n\n确定 → 删除全部同系列\n取消 → 只删这一天');
+    if(choice){delRecur(t.recurId||t.id);}else{delTask(t.id);}
+  } else {
+    delTask(detailCtx.id);
+  }
+  closeDetail();
+}
 function saveDetail(){
   if(!detailCtx)return;const ts=tasks[detailCtx.dk];if(!ts)return;
   const t=ts.find(x=>x.id===detailCtx.id);if(!t)return;

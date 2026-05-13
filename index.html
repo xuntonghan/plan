@@ -80,9 +80,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .cday.today .cdn{color:var(--acc);font-weight:700}
 .cday.sel{background:var(--acc);border-color:var(--acc)}
 .cday.sel .cdw,.cday.sel .cdn{color:#fff}
+.cday.today.sel .cdw,.cday.today.sel .cdn{color:#fff}
 .cdw{font-size:10px;color:var(--txt2)}
 .cdn{font-size:15px;font-weight:500;color:var(--txt0);line-height:1.2;margin-top:1px}
-.cday.today .cdn{color:var(--acc)}
+.cday.today:not(.sel) .cdn{color:var(--acc)}
 .cdot{width:5px;height:5px;border-radius:50%;background:var(--acc-mid);margin:3px auto 0}
 /* ---- SCHED LAYOUT ---- */
 .sched-layout{display:flex;flex:1;overflow:hidden}
@@ -98,7 +99,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .hslot:hover{background:rgba(45,106,79,.03)}
 .cur-line{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:5;pointer-events:none}
 .cur-dot{position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red)}
-.tblock{position:absolute;left:4px;right:4px;border-radius:8px;padding:3px 7px;font-size:11px;overflow:hidden;cursor:pointer;border-left:3px solid transparent;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.09);transition:opacity .1s}
+.tblock{border-radius:8px;padding:3px 7px;font-size:11px;overflow:hidden;cursor:pointer;border-left:3px solid transparent;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.09);transition:opacity .1s}
 .tblock:hover{opacity:.85}
 .tblock.done{opacity:.4;text-decoration:line-through}
 .tblock.recur{background-image:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(255,255,255,.18) 6px,rgba(255,255,255,.18) 8px)}
@@ -246,6 +247,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .focus-btns{display:flex;gap:12px}
 .focus-btns button{padding:10px 24px;border-radius:var(--radius-sm);font-size:14px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18)}
 .fbtn-stop{background:rgba(192,57,43,.3)!important;border-color:var(--red-mid)!important}
+@keyframes alertSlide{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 /* ---- TOAST ---- */
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--txt0);color:#fff;padding:9px 18px;border-radius:var(--radius-full);font-size:13px;z-index:500;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-lg)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -277,7 +279,79 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </style>
 </head>
 <body>
-<div class="app">
+<!-- SPLASH SCREEN (overlay，主应用在下面正常渲染) -->
+<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;transition:opacity .6s ease">
+
+  <!-- 背景层：可自定义图片 -->
+  <div id="splash-bg-layer" style="position:absolute;inset:0;background:#0d1512;background-size:cover;background-position:center;transition:opacity .3s"></div>
+
+  <!-- 深色渐变遮罩 -->
+  <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(13,21,18,.92) 0%,rgba(20,38,28,.88) 50%,rgba(13,21,18,.95) 100%);z-index:1"></div>
+
+  <!-- 装饰光晕 -->
+  <div style="position:absolute;top:-120px;left:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(82,183,136,.18) 0%,transparent 70%);z-index:1;pointer-events:none"></div>
+  <div style="position:absolute;bottom:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(74,144,226,.12) 0%,transparent 70%);z-index:1;pointer-events:none"></div>
+
+  <!-- 主内容 -->
+  <div style="position:relative;z-index:2;text-align:center;padding:40px 32px;max-width:420px;width:100%">
+
+    <!-- Claude logo SVG + 应用图标组合 -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:32px">
+      <!-- Claude logo -->
+      <div style="width:52px;height:52px;opacity:.85">
+        <svg viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M31.24 6.18c-1.03-.42-2.2.07-2.62 1.1l-8.5 20.8-3.3-8.06a2 2 0 0 0-1.85-1.25H7.6a2 2 0 0 0 0 4h6.34l4.56 11.14a2 2 0 0 0 1.85 1.25c.82 0 1.56-.49 1.88-1.25l9.12-22.3 2.1 5.12H38a2 2 0 0 0 0-4h-3.38l-1.76-4.3a2 2 0 0 0-1.62-1.25z" fill="rgba(255,255,255,0.9)"/>
+        </svg>
+      </div>
+      <div style="width:1px;height:40px;background:rgba(255,255,255,.2)"></div>
+      <!-- 日历图标 -->
+      <div style="width:52px;height:52px;background:linear-gradient(135deg,#52b788,#1d5738);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(45,106,79,.5)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 标题 -->
+    <div style="font-size:36px;font-weight:700;color:#fff;letter-spacing:.04em;margin-bottom:6px;line-height:1.1">日程规划</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.45);letter-spacing:.18em;margin-bottom:10px;text-transform:uppercase">Daily Planner</div>
+
+    <!-- 分割线 -->
+    <div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,#52b788,transparent);margin:0 auto 20px"></div>
+
+    <!-- 副标题 -->
+    <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:40px">
+      由 <span style="color:#74c69d;font-weight:500">Claude</span> 提供支持<br/>
+      多设备同步 · 智能提醒 · 专注计时
+    </div>
+
+    <!-- 进入按钮 -->
+    <button id="enter-btn" onclick="enterApp()" style="padding:15px 56px;border-radius:999px;background:linear-gradient(135deg,#52b788,#1d5738);color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;letter-spacing:.06em;box-shadow:0 6px 24px rgba(45,106,79,.55),0 0 0 0 rgba(82,183,136,.4);transition:all .2s;animation:pulseBtn 2.5s infinite">
+      开始使用
+    </button>
+
+    <!-- 提示 -->
+    <div style="margin-top:20px;font-size:11px;color:rgba(255,255,255,.25);letter-spacing:.08em">
+      Powered by Anthropic Claude
+    </div>
+  </div>
+
+  <!-- 底部日期时间 -->
+  <div id="splash-clock" style="position:absolute;bottom:28px;left:0;right:0;text-align:center;z-index:2">
+    <div style="font-size:22px;font-weight:300;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums;letter-spacing:.08em" id="splash-time"></div>
+    <div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:4px;letter-spacing:.06em" id="splash-date"></div>
+  </div>
+</div>
+
+<style>
+@keyframes pulseBtn{0%,100%{box-shadow:0 6px 24px rgba(45,106,79,.55),0 0 0 0 rgba(82,183,136,.4)}50%{box-shadow:0 6px 24px rgba(45,106,79,.55),0 0 0 10px rgba(82,183,136,0)}}
+#splash.hiding{opacity:0;pointer-events:none}
+</style>
+
+<div class="app" id="app-root">
 
 <!-- SIDEBAR -->
 <div class="sidebar">
@@ -329,7 +403,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="detail-bar" id="detail-bar">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <span style="font-weight:600;font-size:13px" id="dm-lbl">编辑任务</span>
-      <div style="display:flex;gap:5px"><button class="dbtn-save" onclick="saveDetail()">保存</button><button onclick="deleteFromDetail()" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);border:1px solid var(--red-mid);font-size:13px">删除</button><button class="dbtn-close" onclick="closeDetail()">关闭</button></div>
+      <div style="display:flex;gap:5px"><button class="dbtn-save" onclick="saveDetail()">保存</button><button onclick="deleteFromDetail()" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);border:1px solid var(--red-mid);font-size:13px">删除此条</button><button onclick="deleteSeriesFromDetail()" id="dm-del-series" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--bg2);color:var(--txt2);border:1px solid var(--bg3);font-size:13px;display:none">删全系列</button><button class="dbtn-close" onclick="closeDetail()">关闭</button></div>
     </div>
     <div class="detail-row">
       <input type="text" id="dm-name" style="flex:1;min-width:100px"/>
@@ -337,6 +411,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <span style="color:var(--txt3);font-size:12px">–</span>
       <input type="time" id="dm-end"/>
       <select id="dm-color" style="width:78px"></select>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+      <button id="dm-btn-timer" onclick="detailToggleTimer()" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--bg3);background:var(--bg1)">▶ 开始计时</button>
+      <button onclick="detailMarkDone()" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--acc-mid);background:var(--acc-light);color:var(--acc)">✓ 完成</button>
+      <button onclick="deleteFromDetail()" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--red-mid);background:var(--red-light);color:var(--red)">删除此条</button>
+      <button onclick="deleteSeriesFromDetail()" id="dm-del-series" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--amber-mid);background:var(--amber-light);color:var(--amber)">删全系列</button>
     </div>
   </div>
 </div>
@@ -358,7 +438,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="topbar"><span class="topbar-title"><i class="ti ti-settings"></i> 设置</span></div>
   <div class="settings-body">
     <div class="scard">
-      <div class="slabel"><i class="ti ti-photo" style="color:var(--blue)"></i> 背景图片</div>
+      <div class="slabel"><i class="ti ti-home" style="color:var(--acc)"></i> 起始页背景</div>
+      <div class="ssub">上传图片作为进入应用时的起始页背景</div>
+      <div class="srow"><input type="file" id="splash-bg-file" accept="image/*" onchange="loadSplashBgFile(this)" style="flex:1"/></div>
+      <button class="btn-outline" onclick="clearSplashBg()" style="margin-top:6px"><i class="ti ti-x"></i> 清除起始页背景</button>
+    </div>
+    <div class="scard">
+      <div class="slabel"><i class="ti ti-photo" style="color:var(--blue)"></i> 日程背景图片</div>
       <div class="ssub">上传本地图片作为日程背景，支持透明度调节</div>
       <div class="srow"><input type="file" id="bg-file" accept="image/*" onchange="loadBg(this)" style="flex:1"/></div>
       <div class="srow"><label>透明度</label><input type="range" id="bg-opacity" min="5" max="40" value="15" step="1" oninput="updateBgOp(this.value)" style="flex:1;width:auto"/><span id="bg-op-val" style="font-size:12px;min-width:28px;font-family:var(--mono)">15%</span></div>
@@ -425,7 +511,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div>
 
 </div><!-- /content -->
-</div><!-- /app -->
+</div><!-- /app-root -->
 
 <!-- MOBILE BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav">
@@ -454,10 +540,24 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <!-- FOCUS OVERLAY -->
 <div class="focus-overlay" id="focus-overlay">
+  <div style="text-align:center;margin-bottom:20px">
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:10px">设置专注时长（分钟）</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+      <button onclick="adjustFocusTime(-5)" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);font-size:18px;display:flex;align-items:center;justify-content:center">−</button>
+      <input type="number" id="focus-min-input" value="25" min="1" max="180" onchange="setFocusTime(this.value)" style="width:64px;text-align:center;font-size:22px;font-weight:600;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 4px"/>
+      <button onclick="adjustFocusTime(5)" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);font-size:18px;display:flex;align-items:center;justify-content:center">＋</button>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+      <button onclick="setFocusTime(25)" style="padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:12px">25分</button>
+      <button onclick="setFocusTime(45)" style="padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:12px">45分</button>
+      <button onclick="setFocusTime(60)" style="padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:12px">60分</button>
+      <button onclick="setFocusTime(90)" style="padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:12px">90分</button>
+    </div>
+  </div>
   <div class="focus-ring">
     <svg viewBox="0 0 180 180" width="180" height="180"><circle cx="90" cy="90" r="87" id="focus-circ" stroke-dasharray="547" stroke-dashoffset="0"/></svg>
     <div class="focus-timer-n" id="focus-timer">25:00</div>
-    <div class="focus-lbl" id="focus-lbl">专注模式</div>
+    <div class="focus-lbl" id="focus-lbl">点开始计时</div>
   </div>
   <div class="focus-btns">
     <button onclick="toggleFocus()" id="focus-tbtn">开始</button>
@@ -469,6 +569,36 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="toast" id="toast"></div>
 
 <script>
+// =============================================
+// SPLASH
+// =============================================
+function enterApp(){
+  const splash=document.getElementById('splash');
+  if(!splash)return;
+  splash.classList.add('hiding');
+  setTimeout(()=>{splash.style.display='none';},650);
+  sessionStorage.setItem('entered','1');
+}
+function updateSplashClock(){
+  const n=new Date();
+  const t=document.getElementById('splash-time');
+  const d=document.getElementById('splash-date');
+  if(t)t.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  if(d)d.textContent=n.getFullYear()+'年'+(n.getMonth()+1)+'月'+n.getDate()+'日 星期'+WD[n.getDay()];
+}
+setInterval(updateSplashClock,1000);
+updateSplashClock();
+if(sessionStorage.getItem('entered')){
+  const splash=document.getElementById('splash');
+  if(splash)splash.style.display='none';
+}
+function loadSplashBg(){
+  try{
+    const u=localStorage.getItem('planner_splash_bg');
+    if(u){const layer=document.getElementById('splash-bg-layer');if(layer)layer.style.backgroundImage='url('+u+')';}
+  }catch(e){}
+}
+
 // =============================================
 // CONSTANTS & STATE
 // =============================================
@@ -507,7 +637,7 @@ let tasks={};let urgents=[];let timers={};
 let detailCtx=null;let bgUrl='';
 // focus
 let focusRunning=false,focusStart=null,focusElapsed=0,focusInt=null;
-const FOCUS_TOTAL=25*60;
+let FOCUS_TOTAL=25*60;
 
 // =============================================
 // HELPERS
@@ -641,7 +771,14 @@ function chkOverdue(){
   const now=new Date();const nm=now.getHours()*60+now.getMinutes();const td=todayMs();
   Object.keys(tasks).forEach(k=>{
     const d=new Date(k.replace(/-/g,'/'));d.setHours(0,0,0,0);
-    tasks[k].forEach(t=>{if(t.status==='todo'&&(d.getTime()<td||(d.getTime()===td&&t2m(t.end)<nm)))t.status='overdue';});
+    const dTime=d.getTime();
+    tasks[k].forEach(t=>{
+      if(t.status!=='todo')return;
+      // 过去的天 → 全部过期
+      if(dTime<td){t.status='overdue';return;}
+      // 今天 → 结束时间已过才过期（不是开始时间）
+      if(dTime===td&&t2m(t.end)<=nm){t.status='overdue';}
+    });
   });
 }
 
@@ -665,13 +802,20 @@ function renderCal(){
 // =============================================
 // BLOCKS
 // =============================================
-function mkBlock(t,top,h,fn){
+function mkBlock(t,topPx,hPx,fn){
   const over=t.status==='overdue';
   const c=over?{bg:'#fee2e2',bd:'#f87171',tx:'#7f1d1d'}:gc(t.color);
   const bl=document.createElement('div');
   bl.className='tblock'+(t.status==='done'?' done':'')+(t.recur?' recur':'');
-  bl.style.cssText=`top:${top}px;height:${Math.max(16,h)}px;background:${c.bg};border-left-color:${c.bd};color:${c.tx}`;
-  bl.innerHTML=`<div class="tbn">${esc(t.title)}</div>${h>20?`<div class="tbt">${t.start}–${t.end}</div>`:''}`;
+  bl.style.position='absolute';
+  bl.style.left='4px';
+  bl.style.right='4px';
+  bl.style.top=topPx+'px';
+  bl.style.height=Math.max(16,hPx)+'px';
+  bl.style.background=c.bg;
+  bl.style.borderLeftColor=c.bd;
+  bl.style.color=c.tx;
+  bl.innerHTML='<div class="tbn">'+esc(t.title)+'</div>'+(hPx>20?'<div class="tbt">'+t.start+'–'+t.end+'</div>':'');
   bl.onclick=fn;return bl;
 }
 
@@ -692,7 +836,7 @@ function renderWeek(){
   for(let h=HS;h<HE;h++){
     const lbl=document.createElement('div');lbl.className='hlbl';lbl.textContent=h+':00';grid.appendChild(lbl);
     days.forEach(d=>{
-      const cell=document.createElement('div');cell.className='wcell'+(d.getTime()===today?' tcol':'');
+      const cell=document.createElement('div');cell.className='wcell'+(d.getTime()===today?' tcol':'');cell.style.position='relative';
       if(d.getTime()===today&&nm>=h*60&&nm<(h+1)*60){
         const p=((nm-h*60)/60)*SLOT;
         const ln=document.createElement('div');ln.className='cur-line';ln.style.top=p+'px';
@@ -717,23 +861,49 @@ function renderDay(){
   const today=todayMs();const isToday=selDate.getTime()===today;
   const now=new Date();const nm=now.getHours()*60+now.getMinutes();
   const HS=ghs(),HE=ghe();
-  const tl=document.createElement('div');tl.className='timeline';
+  // 外层容器：左列时间标签 + 右列相对定位区域
+  const wrap=document.createElement('div');wrap.style.cssText='display:flex;';
+  // 左列：时间标签
+  const lblCol=document.createElement('div');lblCol.style.cssText='width:44px;flex-shrink:0;';
+  // 右列：所有 slot + 任务块的绝对定位容器
+  const slotCol=document.createElement('div');slotCol.style.cssText='flex:1;position:relative;';
+  const totalH=(HE-HS)*SLOT;
+  slotCol.style.height=totalH+'px';
   for(let h=HS;h<HE;h++){
-    const lbl=document.createElement('div');lbl.className='hlbl';lbl.textContent=h+':00';tl.appendChild(lbl);
+    // 时间标签
+    const lbl=document.createElement('div');lbl.className='hlbl';lbl.textContent=h+':00';
+    lbl.style.cssText='position:absolute;right:0;width:44px;box-sizing:border-box;top:'+((h-HS)*SLOT)+'px;height:'+SLOT+'px;line-height:'+SLOT+'px;';
+    lblCol.appendChild(lbl);
+    // slot 背景格
     const slot=document.createElement('div');slot.className='hslot';
+    slot.style.cssText='position:absolute;left:0;right:0;top:'+((h-HS)*SLOT)+'px;height:'+SLOT+'px;';
+    slot.ondblclick=e=>{
+      if(e.target===slot||e.target===slotCol){
+        const ss=document.getElementById('ns');const se=document.getElementById('ne');
+        if(ss){ss.value=String(h).padStart(2,'0')+':00';se.value=String(h+1).padStart(2,'0')+':00';}
+        const nt=document.getElementById('nt');if(nt)nt.focus();
+      }
+    };
+    slotCol.appendChild(slot);
+    // 当前时间线
     if(isToday&&nm>=h*60&&nm<(h+1)*60){
-      const p=((nm-h*60)/60)*SLOT;
-      const ln=document.createElement('div');ln.className='cur-line';ln.style.top=p+'px';
-      ln.appendChild(Object.assign(document.createElement('div'),{className:'cur-dot'}));slot.appendChild(ln);
+      const lineTop=(h-HS)*SLOT+((nm-h*60)/60)*SLOT;
+      const ln=document.createElement('div');ln.className='cur-line';
+      ln.style.cssText='position:absolute;left:0;right:0;top:'+lineTop+'px;';
+      ln.appendChild(Object.assign(document.createElement('div'),{className:'cur-dot'}));
+      slotCol.appendChild(ln);
     }
-    gt(selDate).filter(t=>t2m(t.start)>=h*60&&t2m(t.start)<(h+1)*60).forEach(t=>{
-      const sm=t2m(t.start),em=t2m(t.end);
-      slot.appendChild(mkBlock(t,((sm-h*60)/60)*SLOT,((em-sm)/60)*SLOT,()=>openDetail(t.id,selDate)));
-    });
-    slot.ondblclick=e=>{if(e.target===slot){const ss=document.getElementById('ns');const se=document.getElementById('ne');if(ss){ss.value=h+':00';se.value=(h+1)+':00';}const nt=document.getElementById('nt');if(nt)nt.focus();}};
-    tl.appendChild(slot);
   }
-  inner.appendChild(tl);
+  // 任务块：统一绝对定位于 slotCol
+  gt(selDate).forEach(t=>{
+    const sm=t2m(t.start),em=t2m(t.end);
+    if(sm>=HE*60||em<=HS*60)return;
+    const topPx=Math.max(0,(sm-HS*60)/60*SLOT);
+    const hPx=Math.max(16,(em-sm)/60*SLOT);
+    slotCol.appendChild(mkBlock(t,topPx,hPx,()=>openDetail(t.id,selDate)));
+  });
+  wrap.appendChild(lblCol);wrap.appendChild(slotCol);
+  inner.appendChild(wrap);
 }
 
 // =============================================
@@ -805,13 +975,18 @@ function renderListInto(body){
       btns.appendChild(mkBtn(td.running?'player-pause':'player-play',td.running?'暂停':'开始',null,'计时',()=>toggleTimer(t.id)));
       btns.appendChild(mkBtn('check','完成','var(--acc)','标记完成',()=>markDone(t.id)));
     }
-    btns.appendChild(mkBtn('trash','删除','var(--red)','删除此任务',()=>{
-      if(t.recur){
-        if(confirm('每周固定任务
-确定 → 删除全部同系列
-取消 → 只删这一条')){delRecur(t.recurId||t.id);}else{delTask(t.id);}
-      }else{delTask(t.id);}
+    // 删除单条 — 只删这一天
+    btns.appendChild(mkBtn('trash','删这天','var(--red)','只删这一天',()=>{
+      delTask(t.id);
     }));
+    // 固定任务额外显示删全系列按钮
+    if(t.recur){
+      btns.appendChild(mkBtn('trash-x','删系列','#b85c00','删除全部同系列',()=>{
+        if(confirm('确认删除所有名称为"'+t.title+'"的任务？')){
+          delRecur(t.title);
+        }
+      }));
+    }
 
     row2.appendChild(timeEl);row2.appendChild(tval);row2.appendChild(sp);row2.appendChild(btns);
 
@@ -865,6 +1040,36 @@ function renderProgress(){
 }
 
 // =============================================
+// DATA MIGRATION — 修复旧数据缺少 recurId 的问题
+// =============================================
+function migrateRecurIds(){
+  // 按 title+start+end 分组，补充 recurId
+  const groups={};
+  Object.keys(tasks).forEach(k=>{
+    tasks[k].forEach(t=>{
+      if(t.recur&&!t.recurId){
+        const key=t.title+'|'+t.start+'|'+t.end;
+        if(!groups[key])groups[key]='recur_'+key.replace(/[^a-zA-Z0-9]/g,'_');
+        t.recurId=groups[key];
+      }
+    });
+  });
+}
+
+// =============================================
+// CONFLICT CHECK
+// =============================================
+function hasConflict(d, start, end, excludeId){
+  const sm=t2m(start),em=t2m(end);
+  return gt(d).some(t=>{
+    if(t.id===excludeId)return false;
+    const ts=t2m(t.start),te=t2m(t.end);
+    // 有重叠：新任务开始 < 已有结束 且 新任务结束 > 已有开始
+    return sm<te&&em>ts;
+  });
+}
+
+// =============================================
 // ADD TASK
 // =============================================
 function addTask(p=''){
@@ -885,23 +1090,39 @@ function addTask(p=''){
     let d=new Date(rs+'T00:00:00');const eD=new Date(re+'T00:00:00');
     let dayOffset=0;let addedCount=0;
     const baseId=id;
+    const conflictDates=[];
     while(d<=eD&&dayOffset<500){
       if(dows.includes(d.getDay())){
-        const taskId='r'+baseId+'_'+dayOffset;
-        gt(d).push({id:taskId,title,start,end,color,status:'todo',recur:true,recurId:baseId});
-        addedCount++;
+        if(hasConflict(d,start,end,null)){
+          // 记录冲突日期
+          conflictDates.push((d.getMonth()+1)+'/'+(d.getDate()));
+        } else {
+          const taskId='r'+baseId+'_'+dayOffset;
+          gt(d).push({id:taskId,title,start,end,color,status:'todo',recur:true,recurId:baseId});
+          addedCount++;
+        }
       }
       d=new Date(d.getTime()+86400000);
       dayOffset++;
     }
-    toast(`每周固定任务已添加（${dows.length}天/周）`);
+    if(conflictDates.length>0&&addedCount===0){
+      toast('⚠️ 所有日期均有冲突，请重新设置时间');return;
+    } else if(conflictDates.length>0){
+      toast(`已添加${addedCount}个，以下日期有冲突跳过：${conflictDates.slice(0,3).join('、')}${conflictDates.length>3?'等':''}`)
+    } else {
+      toast(`每周固定任务已添加（共${addedCount}个）`);
+    }
   } else if(type==='urgent'){
+    if(hasConflict(selDate,start,end,null)){toast('⚠️ 该时段已有任务，请重新设置时间');return;}
     const note=(document.getElementById(p+'un')||{}).value?.trim()||'';
     const dl=(document.getElementById(p+'ud')||{}).value||'';
     urgents.push({id,title,start,end,color,note,deadline:dl,status:'todo',date:dk(selDate)});
     gt(selDate).push({id,title,start,end,color,status:'todo',urgent:true});
     updateUrgBadge();toast('紧急事项已添加');
   } else {
+    if(hasConflict(selDate,start,end,null)){
+      toast('⚠️ 该时段已有任务，请重新设置时间');return;
+    }
     gt(selDate).push({id,title,start,end,color,status:'todo'});toast('任务已添加');
   }
   const nt=document.getElementById(p+'nt');if(nt)nt.value='';
@@ -930,10 +1151,17 @@ function delTask(id){
   urgents=urgents.filter(x=>x.id!==id);delete timers[id];updateUrgBadge();saveData();render();
   toast('已删除');
 }
-function delRecur(recurId){
-  // 删除所有 recurId 相同的任务
-  Object.keys(tasks).forEach(k=>{tasks[k]=tasks[k].filter(t=>!(t.recurId===recurId||t.id===recurId));});
-  saveData();render();toast('已删除全部同系列任务');
+function delRecur(title){
+  // 按任务名称删除所有同名任务（视为同系列）
+  let count=0;
+  Object.keys(tasks).forEach(k=>{
+    tasks[k]=tasks[k].filter(t=>{
+      if(t.title===title){count++;return false;}
+      return true;
+    });
+  });
+  saveData();render();
+  toast(count>0?('已删除全部'+count+'个同系列任务（'+title+'）'):'未找到同名任务');
 }
 
 // =============================================
@@ -948,6 +1176,13 @@ function openDetail(id,d){
   document.getElementById('dm-end').value=t.end;
   const sel=document.getElementById('dm-color');
   sel.innerHTML='';COLORS.forEach(c=>{const o=new Option(c.name,c.id);if(c.id===t.color)o.selected=true;sel.appendChild(o);});
+  // 删全系列始终显示（按名称匹配）
+  const seriesBtn=document.getElementById('dm-del-series');
+  if(seriesBtn)seriesBtn.style.display='inline-block';
+  // 更新计时按钮状态
+  const td2=timers[t.id]||{running:false};
+  const timerBtn=document.getElementById('dm-btn-timer');
+  if(timerBtn)timerBtn.textContent=td2.running?'⏸ 暂停计时':'▶ 开始计时';
   document.getElementById('detail-bar').classList.add('open');
 }
 function closeDetail(){document.getElementById('detail-bar').classList.remove('open');detailCtx=null;}
@@ -955,12 +1190,32 @@ function deleteFromDetail(){
   if(!detailCtx)return;
   const ts=tasks[detailCtx.dk];if(!ts)return;
   const t=ts.find(x=>x.id===detailCtx.id);
-  if(t&&t.recur){
-    const choice=confirm('每周固定任务\n\n确定 → 删除全部同系列\n取消 → 只删这一天');
-    if(choice){delRecur(t.recurId||t.id);}else{delTask(t.id);}
-  } else {
-    delTask(detailCtx.id);
+  // 永远只删这一条
+  delTask(detailCtx.id);
+  closeDetail();
+}
+function deleteSeriesFromDetail(){
+  if(!detailCtx)return;
+  const ts=tasks[detailCtx.dk];if(!ts)return;
+  const t=ts.find(x=>x.id===detailCtx.id);
+  if(!t)return;
+  if(confirm('确定删除所有名称为"'+t.title+'"的任务吗？
+（包含所有日期的同名任务）')){
+    delRecur(t.title);closeDetail();
   }
+}
+function detailToggleTimer(){
+  if(!detailCtx)return;
+  const id=detailCtx.id;
+  toggleTimer(id);
+  // 更新按钮文字
+  const td=timers[id]||{running:false};
+  const btn=document.getElementById('dm-btn-timer');
+  if(btn)btn.textContent=td.running?'⏸ 暂停计时':'▶ 开始计时';
+}
+function detailMarkDone(){
+  if(!detailCtx)return;
+  markDone(detailCtx.id);
   closeDetail();
 }
 function saveDetail(){
@@ -1050,6 +1305,23 @@ function renderRemind(){
 // =============================================
 // BACKGROUND
 // =============================================
+function loadSplashBgFile(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const url=e.target.result;
+    const splash=document.getElementById('splash');
+    if(splash)splash.style.backgroundImage='url('+url+')';
+    try{localStorage.setItem('planner_splash_bg',url);}catch(e){}
+    toast('起始页背景已设置');
+  };r.readAsDataURL(file);
+}
+function clearSplashBg(){
+  const splash=document.getElementById('splash');
+  if(splash)splash.style.backgroundImage='none';
+  try{localStorage.removeItem('planner_splash_bg');}catch(e){}
+  toast('起始页背景已清除');
+}
 function loadBg(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{bgUrl=e.target.result;applyBg();};r.readAsDataURL(file);}
 function applyBg(){const l=document.getElementById('bg-layer');if(bgUrl){l.style.backgroundImage=`url(${bgUrl})`;l.style.opacity=document.getElementById('bg-opacity').value/100;}else l.style.backgroundImage='none';}
 function clearBg(){bgUrl='';document.getElementById('bg-layer').style.backgroundImage='none';document.getElementById('bg-file').value='';}
@@ -1135,7 +1407,7 @@ function closeFocus(){
   document.getElementById('focus-overlay').classList.remove('open');
   if(focusInt){clearInterval(focusInt);focusInt=null;}
   focusRunning=false;focusStart=null;focusElapsed=0;
-  document.getElementById('focus-timer').textContent='25:00';
+  const focusMins=Math.round(FOCUS_TOTAL/60);document.getElementById('focus-timer').textContent=String(focusMins).padStart(2,'0')+':00';
   document.getElementById('focus-tbtn').textContent='开始';
   document.getElementById('focus-lbl').textContent='专注模式';
   document.getElementById('focus-circ').style.strokeDashoffset='0';
@@ -1149,6 +1421,20 @@ function tickFocus(){
   const rem=Math.max(0,FOCUS_TOTAL-el);
   updFocus(rem);
   if(rem<=0){clearInterval(focusInt);focusInt=null;focusRunning=false;document.getElementById('focus-lbl').textContent='专注完成！☕ 休息一下';document.getElementById('focus-tbtn').textContent='开始';toast('番茄钟完成！好好休息 ☕');}
+}
+function setFocusTime(mins){
+  if(focusRunning){toast('请先暂停计时');return;}
+  const m=Math.max(1,Math.min(180,parseInt(mins)||25));
+  FOCUS_TOTAL=m*60;focusElapsed=0;focusStart=null;
+  const inp=document.getElementById('focus-min-input');if(inp)inp.value=m;
+  document.getElementById('focus-tbtn').textContent='开始';
+  document.getElementById('focus-lbl').textContent='点开始计时';
+  updFocus(FOCUS_TOTAL);
+}
+function adjustFocusTime(delta){
+  const inp=document.getElementById('focus-min-input');
+  const cur=parseInt(inp?inp.value:25)||25;
+  setFocusTime(cur+delta);
 }
 function updFocus(rem=FOCUS_TOTAL){
   const m=Math.floor(rem/60),s=rem%60;
@@ -1247,13 +1533,53 @@ const q=QUOTES[new Date().getDate()%QUOTES.length];
 const qt=document.getElementById('quote-t');const qa=document.getElementById('quote-a');
 if(qt)qt.textContent=q.t;if(qa)qa.textContent=q.a?'— '+q.a:'';
 
-goToday();render();updateUrgBadge();
+migrateRecurIds();goToday();render();updateUrgBadge();loadSplashBg();
 // show panel btn on mobile
 (function(){const mpb=document.getElementById('mob-panel-btn');if(mpb&&mob())mpb.style.display='flex';})();
 
 loadWeather();
 setInterval(()=>{updateClock();updateTimers();},1000);
 setInterval(()=>{chkOverdue();if(curView==='week')renderWeek();else renderDay();renderTaskList();renderFreeSlots();},30000);
+
+// ---- 当日任务自动提醒 + 自动计时 ----
+let lastAutoCheck='';
+function autoTaskCheck(){
+  const now=new Date();
+  const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  if(hm===lastAutoCheck)return;
+  lastAutoCheck=hm;
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayTasks=gt(today).filter(t=>t.status==='todo'&&t.start===hm);
+  todayTasks.forEach(t=>{
+    // 显示提醒浮窗
+    showTaskAlert(t);
+    // 自动开始计时
+    if(!timers[t.id]||!timers[t.id].running){
+      toggleTimer(t.id);
+    }
+  });
+}
+setInterval(autoTaskCheck,10000);
+
+function showTaskAlert(t){
+  // 移除旧的提醒
+  const old=document.getElementById('task-alert');if(old)old.remove();
+  const c=gc(t.color);
+  const div=document.createElement('div');
+  div.id='task-alert';
+  div.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:600;background:var(--bg1);border:2px solid '+c.bd+';border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow-lg);min-width:280px;max-width:380px;text-align:center;animation:alertSlide .3s ease';
+  div.innerHTML=`
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:4px">⏰ 现在该做了</div>
+    <div style="font-size:16px;font-weight:600;color:var(--txt0);margin-bottom:4px">${esc(t.title)}</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:12px">${t.start} – ${t.end}</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button onclick="document.getElementById('task-alert').remove();markDone('${t.id}')" style="padding:6px 16px;border-radius:var(--radius-sm);background:var(--acc);color:#fff;border:none;font-size:13px;cursor:pointer">✓ 完成</button>
+      <button onclick="document.getElementById('task-alert').remove()" style="padding:6px 16px;border-radius:var(--radius-sm);background:var(--bg2);color:var(--txt1);border:1px solid var(--bg3);font-size:13px;cursor:pointer">稍后</button>
+    </div>`;
+  document.body.appendChild(div);
+  // 10秒后自动消失
+  setTimeout(()=>{const a=document.getElementById('task-alert');if(a)a.style.opacity='0';setTimeout(()=>{const a=document.getElementById('task-alert');if(a)a.remove();},400);},10000);
+}
 window.addEventListener('resize',()=>{const mpb=document.getElementById('mob-panel-btn');if(mpb)mpb.style.display=mob()?'flex':'none';});
 
 // 异步加载云端数据（启动时）

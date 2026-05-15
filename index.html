@@ -401,10 +401,7 @@ button:hover{
     gap:4px;
   }
 
-  .btn-nav::before{
-    font-size:12px;
-    font-weight:600;
-  }
+  
 
   .btn-nav:first-of-type::before{
     content:'上周';
@@ -511,6 +508,92 @@ button:hover{
   .rpanel.open{
     right:0!important;
   }
+}
+
+
+@media(max-width:768px){
+
+  .sidebar{
+    height:78px!important;
+    padding:6px 4px calc(env(safe-area-inset-bottom) + 4px)!important;
+    background:rgba(255,255,255,.96)!important;
+    backdrop-filter:blur(24px)!important;
+    display:flex!important;
+    justify-content:space-around!important;
+    align-items:flex-end!important;
+  }
+
+  .sidebar button,
+  .sidebar .nav-item,
+  .sidebar .sbtn{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    min-width:58px!important;
+    height:58px!important;
+    border-radius:16px!important;
+    font-size:11px!important;
+    font-weight:600!important;
+    color:#666!important;
+    background:transparent!important;
+    border:none!important;
+  }
+
+  .sidebar button.active,
+  .sidebar .active{
+    background:#e7f6ed!important;
+    color:#1d7a4f!important;
+  }
+
+  .sidebar button::before{
+    font-size:20px;
+    line-height:1;
+  }
+
+  .sidebar button:nth-child(1)::before{
+    content:'📅';
+  }
+
+  .sidebar button:nth-child(2)::before{
+    content:'⚡';
+  }
+
+  .sidebar button:nth-child(3)::before{
+    content:'⏰';
+  }
+
+  .sidebar button:nth-child(4)::before{
+    content:'⚙️';
+  }
+
+  .sidebar button:nth-child(5)::before{
+    content:'❔';
+  }
+
+  .topbar .btn-nav{
+    min-width:76px!important;
+    height:38px!important;
+    border-radius:14px!important;
+    font-weight:700!important;
+    font-size:13px!important;
+  }
+
+  .topbar .btn-nav:first-child{
+    content:'';
+  }
+
+  .dayhead{
+    font-size:12px!important;
+    font-weight:700!important;
+  }
+
+  .daycard,
+  .weekday-chip{
+    border-radius:16px!important;
+  }
+
 }
 
 </style>
@@ -813,7 +896,7 @@ function enterApp(){
   sessionStorage.setItem('entered','1');
 }
 function updateSplashClock(){
-  const WD_LOCAL=['日','一','二','三','四','五','六'];
+  const WD_LOCAL=['日','月','火','水','木','金','土'];
   const n=new Date();
   const t=document.getElementById('splash-time');
   const d=document.getElementById('splash-date');
@@ -840,7 +923,7 @@ function loadSplashBg(){
 // =============================================
 // CONSTANTS & STATE
 // =============================================
-const WD=['日','一','二','三','四','五','六'];
+const WD=['日','月','火','水','木','金','土'];
 const MO=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
 const SLOT=52;
 const COLORS=[
@@ -936,7 +1019,7 @@ function formHTML(p=''){
     <div class="frow" style="flex-direction:column;align-items:flex-start;gap:5px">
       <label>重复日（可多选）</label>
       <div style="display:flex;flex-wrap:wrap;gap:5px">
-        ${['日','一','二','三','四','五','六'].map((d,i)=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:3px 8px;border:1px solid var(--bg3);border-radius:var(--radius-full)"><input type="checkbox" class="${p}rdow-cb" value="${i}" style="accent-color:var(--acc)"/> 周${d}</label>`).join('')}
+        ${['日','月','火','水','木','金','土'].map((d,i)=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:3px 8px;border:1px solid var(--bg3);border-radius:var(--radius-full)"><input type="checkbox" class="${p}rdow-cb" value="${i}" style="accent-color:var(--acc)"/> 周${d}</label>`).join('')}
       </div>
     </div>
   </div>

@@ -224,13 +224,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .hli{font-size:13px;color:var(--txt1);line-height:1.75;padding-left:15px;position:relative;margin-bottom:2px}
 .hli::before{content:'›';position:absolute;left:3px;color:var(--acc-mid)}
 /* ---- SHEETS ---- */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;opacity:0;transition:opacity .25s}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:205;opacity:0;transition:opacity .25s}
 .overlay.open{display:block;opacity:1}
-.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg1);border-radius:18px 18px 0 0;z-index:201;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:88vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg1);border-radius:18px 18px 0 0;z-index:210;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom)}
 .sheet.open{transform:translateY(0)}
 .sheet-handle{width:36px;height:4px;background:var(--bg3);border-radius:2px;margin:10px auto 13px}
 .sheet-title{font-size:16px;font-weight:600;padding:0 18px 12px;border-bottom:1px solid var(--bg2);margin-bottom:13px}
-.sheet-body{padding:0 18px 24px}
+.sheet-body{padding:0 18px 24px;min-height:100px}
 .sfrow{margin-bottom:10px}
 .sfrow label{font-size:11px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
 .sfrow .time-row{display:flex;gap:8px;align-items:center}
@@ -257,17 +257,31 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   .sidebar{display:none}
   .bottom-nav{display:flex}
   .rpanel{display:none}
-  .content{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
-  .topbar{padding:8px 10px;gap:4px}
-  .cal-strip{padding:7px 10px 6px}
+  /* 给底部留出空间：底部导航高度 */
+  .content{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+  .topbar{padding:8px 8px;gap:3px;flex-wrap:nowrap;overflow-x:auto}
+  .cal-strip{padding:7px 8px 6px}
   .mob-show{display:flex!important}
-  .sched-wrap{padding-bottom:0}
-  /* 当 detail-bar 打开时给 sched 留空间 */
-  .detail-bar.open~* .sched-layout,.page-schedule.detail-open .sched-layout{padding-bottom:120px}
+  /* detail-bar: 固定在底部导航上方 */
+  .detail-bar{position:fixed!important;left:0!important;right:0!important;
+    bottom:calc(68px + env(safe-area-inset-bottom))!important;
+    z-index:150!important;max-height:60vh;overflow-y:auto;
+    box-shadow:0 -4px 24px rgba(0,0,0,.18)!important}
+  /* detail-bar 打开时内容区下方留白 */
+  .detail-bar.open+.sched-layout,.sched-layout{padding-bottom:0}
+  /* topbar 按钮尺寸缩小 */
+  .btn-nav{height:32px;padding:0 7px;font-size:14px}
+  .btn-today{padding:4px 10px;font-size:11px}
+  .vbtn{padding:4px 10px;font-size:11px}
+  /* toast 在底部导航上方 */
+  .toast{bottom:calc(80px + env(safe-area-inset-bottom))!important}
 }
 @media(min-width:601px){
   .mob-only{display:none!important}
   #mob-panel-btn{display:none!important}
+}
+@media(max-width:600px){
+  #mob-panel-btn{display:flex!important}
 }
 @media(max-width:960px){
   .rpanel{width:230px}
@@ -374,9 +388,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div style="text-align:center;min-width:115px"><div style="font-size:14px;font-weight:600" id="week-label"></div><div style="font-size:10px;color:var(--txt2);margin-top:1px" id="week-sub"></div></div>
     <button class="btn-nav" onclick="shiftWeek(1)" title="下一周" aria-label="下一周"><span class="btn-nav-txt">下周</span> <i class="ti ti-arrow-right"></i></button>
     <button class="btn-today" onclick="goToday()"><i class="ti ti-home"></i> 今天</button>
-    <div style="display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--radius-full)"><button class="vbtn" id="vbtn-day" onclick="setView('day')" style="border:none">日视图</button><button class="vbtn active" id="vbtn-week" onclick="setView('week')" style="border:none">周视图</button></div>
+    <div style="display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--radius-full);flex-shrink:0"><button class="vbtn" id="vbtn-day" onclick="setView('day')" style="border:none;white-space:nowrap">日</button><button class="vbtn active" id="vbtn-week" onclick="setView('week')" style="border:none;white-space:nowrap">周</button></div>
     <div class="spacer"></div>
-    <button class="btn-icon mob-only" id="mob-panel-btn" onclick="openPanel()" style="display:none"><i class="ti ti-layout-sidebar-right"></i></button>
+    <button class="btn-icon mob-only" id="mob-panel-btn" onclick="openPanel()" title="任务列表"><i class="ti ti-layout-list"></i> <span style="font-size:11px">任务</span></button>
     <div id="clock-area" style="text-align:right;display:none"><div class="live-clock" id="live-clock" style="font-size:15px;font-weight:600;letter-spacing:.03em"></div><div id="clock-date" style="font-size:10px;color:var(--txt2);margin-top:1px"></div></div>
   </div>
   <div class="cal-strip" id="cal-strip"></div>
@@ -740,8 +754,13 @@ function goPage(p){
   document.getElementById('page-'+p).classList.add('active');
   if(p==='urgent')renderUrgent();
   if(p==='remind')renderRemind();
+  // 手机端：日程页才显示面板按钮，关闭 detail-bar
   const mpb=document.getElementById('mob-panel-btn');
   if(mpb)mpb.style.display=(p==='schedule'&&mob())?'flex':'none';
+  if(p!=='schedule'){
+    const db=document.getElementById('detail-bar');
+    if(db)db.classList.remove('open');
+  }
 }
 
 // =============================================
@@ -1150,7 +1169,7 @@ function markDone(id){
 function delTask(id){
   Object.keys(tasks).forEach(k=>{tasks[k]=tasks[k].filter(t=>t.id!==id);});
   urgents=urgents.filter(x=>x.id!==id);delete timers[id];updateUrgBadge();saveData();render();
-  toast('已删除');
+  refreshPanelIfOpen();toast('已删除');
 }
 function delRecur(title){
   // 按任务名称删除所有同名任务（视为同系列）
@@ -1448,11 +1467,15 @@ function updFocus(rem=FOCUS_TOTAL){
 // MOBILE SHEETS
 // =============================================
 function openAddSheet(){
-  document.getElementById('add-sheet-body').innerHTML=formHTML('m-');
+  const body=document.getElementById('add-sheet-body');
+  body.innerHTML=formHTML('m-');
   initCG('m-');
+  // 同步当前选中日期到表单
   document.getElementById('add-sheet').classList.add('open');
   document.getElementById('add-overlay').classList.add('open');
-  setTimeout(()=>{const el=document.getElementById('m-nt');if(el)el.focus();},300);
+  setTimeout(()=>{
+    const el=document.getElementById('m-nt');if(el)el.focus();
+  },300);
 }
 function closeAddSheet(){
   document.getElementById('add-sheet').classList.remove('open');
@@ -1472,6 +1495,11 @@ function openPanel(){
 function closePanel(){
   document.getElementById('panel-sheet').classList.remove('open');
   document.getElementById('panel-overlay').classList.remove('open');
+}
+// 手机端：任务操作后刷新 panel（如果是打开状态）
+function refreshPanelIfOpen(){
+  const ps=document.getElementById('panel-sheet');
+  if(ps&&ps.classList.contains('open'))openPanel();
 }
 
 // =============================================

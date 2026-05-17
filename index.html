@@ -537,6 +537,11 @@ const weekJP = ['日','月','火','水','木','金','土'];
       </div>
     </div>
     <div class="scard">
+      <div class="slabel"><i class="ti ti-user" style="color:var(--acc)"></i> 当前用户</div>
+      <div class="ssub" id="current-user-label">未登录</div>
+      <button class="btn-outline" onclick="switchUser()">切换用户</button>
+    </div>
+    <div class="scard">
       <div class="slabel"><i class="ti ti-database" style="color:var(--txt2)"></i> 数据备份</div>
       <div class="ssub">数据保存在浏览器本地。可导出 JSON 文件备份，随时恢复。</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1453,6 +1458,99 @@ const SB_URL='https://gxedinhlhgegbudblrnt.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4ZWRpbmhsaGdlZ2J1ZGJscm50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MDU0MjcsImV4cCI6MjA5Mzk4MTQyN30.61yxZTVfOqup3s9hCKtWDyVMxCFCDFwZoYgJKGlNJ_k';
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 
+// ---- 用户隔离 ----
+let currentUser='';
+
+function getUserKey(type){
+  return 'user_'+currentUser+'_'+type;
+}
+
+function showUserLogin(){
+  const mask=document.createElement('div');
+  mask.id='user-login-mask';
+  mask.style.cssText='position:fixed;inset:0;z-index:8000;background:rgba(13,21,18,.92);display:flex;align-items:center;justify-content:center;padding:20px';
+  mask.innerHTML=`
+    <div style="background:#fff;border-radius:16px;padding:32px 28px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="font-size:32px;margin-bottom:12px">🔐</div>
+      <div style="font-size:20px;font-weight:700;color:#1a1816;margin-bottom:6px">欢迎使用日程规划</div>
+      <div style="font-size:13px;color:#8a837a;margin-bottom:20px;line-height:1.6">用户名 + 密码相同的设备数据自动同步<br/>首次输入即自动注册</div>
+      <div style="margin-bottom:12px;text-align:left">
+        <div style="font-size:12px;font-weight:600;color:#4a4540;margin-bottom:5px">用户名</div>
+        <input id="username-input" type="text" placeholder="输入用户名（如：小明）" maxlength="20" autocomplete="username"
+          style="width:100%;padding:11px 14px;border:1.5px solid #e8e4de;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')document.getElementById('password-input').focus()"
+          oninput="this.style.borderColor=this.value.trim()?'#52b788':'#e8e4de'"
+        />
+      </div>
+      <div style="margin-bottom:20px;text-align:left">
+        <div style="font-size:12px;font-weight:600;color:#4a4540;margin-bottom:5px">密码</div>
+        <div style="position:relative">
+          <input id="password-input" type="password" placeholder="输入密码" maxlength="30" autocomplete="current-password"
+            style="width:100%;padding:11px 40px 11px 14px;border:1.5px solid #e8e4de;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box"
+            onkeydown="if(event.key==='Enter')confirmUser()"
+            oninput="this.style.borderColor=this.value?'#52b788':'#e8e4de'"
+          />
+          <button onclick="togglePwdVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;font-size:16px;color:#8a837a;padding:4px" id="pwd-eye">👁</button>
+        </div>
+      </div>
+      <div id="login-error" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none">用户名和密码不能为空</div>
+      <button onclick="confirmUser()" style="width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,#52b788,#1d5738);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">进入</button>
+      <div style="font-size:11px;color:#b8b0a8;margin-top:14px">密码错误将无法访问对应数据</div>
+    </div>`;
+  document.body.appendChild(mask);
+  setTimeout(()=>document.getElementById('username-input').focus(),100);
+}
+
+function togglePwdVis(){
+  const inp=document.getElementById('password-input');
+  const eye=document.getElementById('pwd-eye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🙈';}
+  else{inp.type='password';eye.textContent='👁';}
+}
+
+function simpleHash(str){
+  // 简单字符串 hash，用于密码不明文存储
+  let h=0;
+  for(let i=0;i<str.length;i++){h=(Math.imul(31,h)+str.charCodeAt(i))|0;}
+  return Math.abs(h).toString(36);
+}
+
+function confirmUser(){
+  const nameEl=document.getElementById('username-input');
+  const pwdEl=document.getElementById('password-input');
+  const errEl=document.getElementById('login-error');
+  const name=(nameEl?nameEl.value.trim():'');
+  const pwd=(pwdEl?pwdEl.value:'');
+  if(!name||!pwd){
+    if(errEl)errEl.style.display='block';
+    if(!name&&nameEl)nameEl.style.borderColor='#f87171';
+    if(!pwd&&pwdEl)pwdEl.style.borderColor='#f87171';
+    return;
+  }
+  if(errEl)errEl.style.display='none';
+  // 用 用户名+密码hash 作为数据隔离key，避免明文密码存储
+  const pwdHash=simpleHash(pwd);
+  currentUser=name+'_'+pwdHash;
+  try{
+    localStorage.setItem('planner_username',name);
+    localStorage.setItem('planner_pwdhash',pwdHash);
+  }catch(e){}
+  const mask=document.getElementById('user-login-mask');
+  if(mask){mask.style.opacity='0';mask.style.transition='opacity .3s';setTimeout(()=>mask.remove(),300);}
+  loadData();
+  toast('你好，'+name+' 👋');
+}
+
+function switchUser(){
+  if(!confirm('切换用户会清除当前页面数据（云端数据不受影响），确定吗？'))return;
+  try{
+    localStorage.removeItem('planner_username');
+    localStorage.removeItem('planner_pwdhash');
+  }catch(e){}
+  tasks={};urgents={};currentUser='';
+  render();showUserLogin();
+}
+
 async function sbGet(key){
   try{
     const r=await fetch(SB_URL+'/rest/v1/planner_data?key=eq.'+encodeURIComponent(key)+'&select=value',{headers:SB_HEADERS});
@@ -1473,30 +1571,31 @@ async function sbSet(key,value){
 
 let saveTimer=null;
 function saveData(){
-  // 同时保存到 localStorage（离线备用）
-  try{localStorage.setItem('planner_tasks',JSON.stringify(tasks));localStorage.setItem('planner_urgents',JSON.stringify(urgents));}catch(e){}
-  // 防抖：1秒后上传到 Supabase
+  if(!currentUser)return;
+  try{localStorage.setItem(getUserKey('tasks'),JSON.stringify(tasks));localStorage.setItem(getUserKey('urgents'),JSON.stringify(urgents));}catch(e){}
   if(saveTimer)clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
-    await sbSet('tasks',tasks);
-    await sbSet('urgents',urgents);
+    await sbSet(getUserKey('tasks'),tasks);
+    await sbSet(getUserKey('urgents'),urgents);
   },1000);
 }
 
 async function loadData(){
+  if(!currentUser)return;
   // 先读 localStorage 快速显示
   try{
-    const t=localStorage.getItem('planner_tasks');if(t)tasks=JSON.parse(t);
-    const u=localStorage.getItem('planner_urgents');if(u)urgents=JSON.parse(u);
+    const t=localStorage.getItem(getUserKey('tasks'));if(t)tasks=JSON.parse(t);
+    const u=localStorage.getItem(getUserKey('urgents'));if(u)urgents=JSON.parse(u);
     const th=localStorage.getItem('planner_theme');if(th)setTheme(th);
   }catch(e){}
+  render();updateUrgBadge();
   // 再从 Supabase 拉最新数据
   toast('正在同步云端数据…');
-  const [cloudTasks,cloudUrgents]=await Promise.all([sbGet('tasks'),sbGet('urgents')]);
-  if(cloudTasks){tasks=cloudTasks;localStorage.setItem('planner_tasks',JSON.stringify(tasks));}
-  if(cloudUrgents){urgents=cloudUrgents;localStorage.setItem('planner_urgents',JSON.stringify(urgents));}
+  const [cloudTasks,cloudUrgents]=await Promise.all([sbGet(getUserKey('tasks')),sbGet(getUserKey('urgents'))]);
+  if(cloudTasks){tasks=cloudTasks;try{localStorage.setItem(getUserKey('tasks'),JSON.stringify(tasks));}catch(e){}}
+  if(cloudUrgents){urgents=cloudUrgents;try{localStorage.setItem(getUserKey('urgents'),JSON.stringify(urgents));}catch(e){}}
   updateUrgBadge();render();
-  toast('云端数据同步完成 ☁');
+  toast('同步完成 ☁ 当前用户：'+currentUser);
 }
 function exportData(){
   const blob=new Blob([JSON.stringify({tasks,urgents,v:2,at:new Date().toISOString()},null,2)],{type:'application/json'});
@@ -1636,6 +1735,12 @@ function updateTimers(){
 // RENDER & INIT
 // =============================================
 function render(){
+  // 更新设置页用户名显示
+  const ul=document.getElementById('current-user-label');
+  if(ul){
+    try{const n=localStorage.getItem('planner_username');ul.textContent=n?('当前用户：'+n):'未登录';}
+    catch(e){ul.textContent='未登录';}
+  }
   chkOverdue();renderCal();
   if(curView==='week')renderWeek();else renderDay();
   renderTaskList();renderFreeSlots();
@@ -1651,6 +1756,19 @@ const qt=document.getElementById('quote-t');const qa=document.getElementById('qu
 if(qt)qt.textContent=q.t;if(qa)qa.textContent=q.a?'— '+q.a:'';
 
 migrateRecurIds();goToday();render();updateUrgBadge();loadSplashBg();
+// 检查已保存的用户名，否则显示登录
+(function initUser(){
+  try{
+    const savedName=localStorage.getItem('planner_username');
+    const savedHash=localStorage.getItem('planner_pwdhash');
+    if(savedName&&savedName.trim()&&savedHash){
+      currentUser=savedName.trim()+'_'+savedHash;
+      loadData();
+    } else {
+      showUserLogin();
+    }
+  }catch(e){showUserLogin();}
+})();
 // show panel btn on mobile
 (function(){const mpb=document.getElementById('mob-panel-btn');if(mpb&&mob())mpb.style.display='flex';})();
 

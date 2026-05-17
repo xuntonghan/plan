@@ -1,0 +1,128 @@
+<!--
+把这段代码复制到你原来的 index.html 里
+不要单独打开这个文件！
+==============================
+
+1. 放到 </style> 前面
+2. 删除所有 .btn-nav::before 相关旧代码
+3. 搜索 ['日','一','二','三','四','五','六']
+   替换成：
+   ['日','月','火','水','木','金','土']
+
+==============================
+-->
+
+<style>
+
+@media (max-width:768px){
+
+  .btn-nav::before,
+  .btn-nav:first-of-type::before,
+  .btn-nav:last-of-type::before{
+    content:none !important;
+    display:none !important;
+  }
+
+  .topbar{
+    padding:8px !important;
+    gap:6px !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    flex-wrap:wrap !important;
+  }
+
+  .topbar .btn-nav{
+    min-width:78px !important;
+    height:40px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    font-weight:700 !important;
+    padding:0 12px !important;
+  }
+
+  .sidebar{
+    position:fixed !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+
+    width:100% !important;
+    height:74px !important;
+
+    background:rgba(255,255,255,.97) !important;
+    border-top:1px solid rgba(0,0,0,.06) !important;
+
+    display:flex !important;
+    justify-content:space-evenly !important;
+    align-items:center !important;
+
+    backdrop-filter:blur(20px) !important;
+    z-index:999 !important;
+  }
+
+  .sidebar-title,
+  .logo,
+  .brand{
+    display:none !important;
+  }
+
+  .sidebar button{
+    width:64px !important;
+    height:58px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+
+    align-items:center !important;
+    justify-content:center !important;
+
+    gap:4px !important;
+
+    border:none !important;
+    border-radius:16px !important;
+
+    background:transparent !important;
+
+    font-size:11px !important;
+    font-weight:600 !important;
+
+    color:#666 !important;
+  }
+
+  .sidebar button.active{
+    background:#e9f7ef !important;
+    color:#1f7a4d !important;
+  }
+
+  .sidebar button::before{
+    font-size:20px !important;
+    line-height:1 !important;
+  }
+
+  .sidebar button:nth-child(1)::before{
+    content:'📅';
+  }
+
+  .sidebar button:nth-child(2)::before{
+    content:'⚡';
+  }
+
+  .sidebar button:nth-child(3)::before{
+    content:'⏰';
+  }
+
+  .sidebar button:nth-child(4)::before{
+    content:'⚙️';
+  }
+
+  .sidebar button:nth-child(5)::before{
+    content:'❔';
+  }
+
+  .content{
+    padding-bottom:88px !important;
+  }
+
+}
+
+</style>

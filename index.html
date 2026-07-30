@@ -263,13 +263,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .btn-nav:hover{background:var(--acc);color:#fff}
 
 body{
-  background:linear-gradient(135deg,#ebe7df,#f5f3ef);
+  background:
+    linear-gradient(135deg,rgba(45,106,79,.08),rgba(26,79,122,.05) 42%,rgba(184,92,0,.06)),
+    var(--bg0);
 }
 
 .app{
   width:min(1600px,100%);
   margin:auto;
-  box-shadow:0 0 50px rgba(0,0,0,.08);
+  border-left:1px solid rgba(0,0,0,.04);
+  border-right:1px solid rgba(0,0,0,.04);
+  box-shadow:0 18px 70px rgba(34,30,24,.1);
 }
 
 button{
@@ -285,6 +289,103 @@ button:hover{
 
 .tblock:hover{
   transform:translateY(-1px) scale(1.01);
+}
+
+.week-btn{
+  min-width:74px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  background:var(--acc-light);
+  border:1.5px solid var(--acc-mid);
+  border-radius:var(--radius-sm);
+  color:#1b4332;
+  cursor:pointer;
+  padding:0 11px;
+  font-size:13px;
+  font-weight:600;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+
+.week-btn:hover{
+  background:var(--acc);
+  border-color:var(--acc);
+  color:#fff;
+}
+
+.week-title-box{
+  text-align:center;
+  min-width:128px;
+  padding:2px 10px;
+  border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.54);
+}
+
+.detail-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+.detail-actions{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.detail-actions button{
+  white-space:nowrap;
+}
+
+.tli{
+  border-radius:var(--radius-sm);
+  padding-left:6px;
+  padding-right:4px;
+}
+
+.tli:hover{
+  background:rgba(45,106,79,.035);
+}
+
+.fsi{
+  border-radius:var(--radius-sm);
+  padding-left:6px;
+  padding-right:6px;
+}
+
+.fsi:hover{
+  background:rgba(26,79,122,.035);
+}
+
+@media(max-width:768px){
+  .week-title-box{
+    order:-1;
+    flex:1 1 100%;
+    min-width:0;
+    background:transparent;
+    padding:0 0 2px;
+  }
+
+  .week-btn{
+    min-width:0;
+    flex:1 1 68px;
+    padding:0 8px;
+  }
+
+  .detail-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .detail-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
 }
 
 
@@ -312,6 +413,7 @@ button:hover{
   /* 上周/下周按钮：只显示箭头 */
   /* btn-nav-txt always visible */
   .btn-nav{height:36px;min-width:36px;padding:0 8px;font-size:18px}
+  .week-btn{height:34px;font-size:12px}
   /* 今天/日/周按钮 */
   .btn-today{font-size:12px!important;padding:5px 12px!important}
   .vbtn{font-size:12px!important;padding:5px 11px!important}
@@ -449,9 +551,9 @@ const weekJP = ['日','月','火','水','木','金','土'];
 <!-- SCHEDULE PAGE -->
 <div class="page active" id="page-schedule" style="flex-direction:column">
   <div class="topbar">
-    <button onclick="shiftWeek(-1)" style="min-width:68px;height:36px;display:flex;align-items:center;justify-content:center;gap:5px;background:#d8f3dc;border:1.5px solid #52b788;border-radius:8px;color:#1b4332;cursor:pointer;padding:0 10px;font-size:13px;font-weight:600;flex-shrink:0">← 上周</button>
-    <div style="text-align:center;min-width:115px"><div style="font-size:14px;font-weight:600" id="week-label"></div><div style="font-size:10px;color:var(--txt2);margin-top:1px" id="week-sub"></div></div>
-    <button onclick="shiftWeek(1)" style="min-width:68px;height:36px;display:flex;align-items:center;justify-content:center;gap:5px;background:#d8f3dc;border:1.5px solid #52b788;border-radius:8px;color:#1b4332;cursor:pointer;padding:0 10px;font-size:13px;font-weight:600;flex-shrink:0">下周 →</button>
+    <button class="week-btn" onclick="shiftWeek(-1)" title="上一周"><i class="ti ti-chevron-left"></i><span>上周</span></button>
+    <div class="week-title-box"><div style="font-size:14px;font-weight:600" id="week-label"></div><div style="font-size:10px;color:var(--txt2);margin-top:1px" id="week-sub"></div></div>
+    <button class="week-btn" onclick="shiftWeek(1)" title="下一周"><span>下周</span><i class="ti ti-chevron-right"></i></button>
     <button class="btn-today" onclick="goToday()"><i class="ti ti-home"></i> 今天</button>
     <div style="display:flex;gap:2px;background:var(--bg2);padding:3px;border-radius:var(--radius-full);flex-shrink:0"><button class="vbtn" id="vbtn-day" onclick="setView('day')" style="border:none;white-space:nowrap">日</button><button class="vbtn active" id="vbtn-week" onclick="setView('week')" style="border:none;white-space:nowrap">周</button></div>
     <div class="spacer"></div>
@@ -476,9 +578,9 @@ const weekJP = ['日','月','火','水','木','金','土'];
     </div>
   </div>
   <div class="detail-bar" id="detail-bar">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="detail-head">
       <span style="font-weight:600;font-size:13px" id="dm-lbl">编辑任务</span>
-      <div style="display:flex;gap:5px"><button class="dbtn-save" onclick="saveDetail()">保存</button><button onclick="deleteFromDetail()" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);border:1px solid var(--red-mid);font-size:13px">删除此条</button><button onclick="deleteSeriesFromDetail()" id="dm-del-series" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--bg2);color:var(--txt2);border:1px solid var(--bg3);font-size:13px;display:none">删全系列</button><button class="dbtn-close" onclick="closeDetail()">关闭</button></div>
+      <div class="detail-actions"><button class="dbtn-save" onclick="saveDetail()">保存</button><button onclick="deleteFromDetail()" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--red-light);color:var(--red);border:1px solid var(--red-mid);font-size:13px">删除此条</button><button onclick="deleteSeriesFromDetail()" id="dm-del-series-main" class="dm-del-series" style="padding:7px 14px;border-radius:var(--radius-sm);background:var(--bg2);color:var(--txt2);border:1px solid var(--bg3);font-size:13px;display:none">删全系列</button><button class="dbtn-close" onclick="closeDetail()">关闭</button></div>
     </div>
     <div class="detail-row">
       <input type="text" id="dm-name" style="flex:1;min-width:100px"/>
@@ -491,7 +593,7 @@ const weekJP = ['日','月','火','水','木','金','土'];
       <button id="dm-btn-timer" onclick="detailToggleTimer()" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--bg3);background:var(--bg1)">▶ 开始计时</button>
       <button onclick="detailMarkDone()" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--acc-mid);background:var(--acc-light);color:var(--acc)">✓ 完成</button>
       <button onclick="deleteFromDetail()" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--red-mid);background:var(--red-light);color:var(--red)">删除此条</button>
-      <button onclick="deleteSeriesFromDetail()" id="dm-del-series" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--amber-mid);background:var(--amber-light);color:var(--amber)">删全系列</button>
+      <button onclick="deleteSeriesFromDetail()" id="dm-del-series-inline" class="dm-del-series" style="padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--amber-mid);background:var(--amber-light);color:var(--amber);display:none">删全系列</button>
     </div>
   </div>
 </div>
@@ -752,7 +854,18 @@ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'
 const gc=id=>COLORS.find(c=>c.id===id)||COLORS[0];
 const ghs=()=>parseInt(document.getElementById('hour-start').value)||7;
 const ghe=()=>parseInt(document.getElementById('hour-end').value)||23;
-const mob=()=>window.innerWidth<=600;
+const mob=()=>window.innerWidth<=768;
+
+function normalizeData(){
+  if(!tasks||Array.isArray(tasks)||typeof tasks!=='object')tasks={};
+  Object.keys(tasks).forEach(k=>{
+    if(!Array.isArray(tasks[k]))tasks[k]=[];
+    tasks[k]=tasks[k].filter(t=>t&&typeof t==='object');
+  });
+  if(!Array.isArray(urgents))urgents=[];
+  urgents=urgents.filter(u=>u&&typeof u==='object');
+  if(!timers||Array.isArray(timers)||typeof timers!=='object')timers={};
+}
 
 function toast(msg){
   const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
@@ -1096,8 +1209,8 @@ function renderListInto(body){
     // 固定任务额外显示删全系列按钮
     if(t.recur){
       btns.appendChild(mkBtn('trash-x','删系列','#b85c00','删除全部同系列',()=>{
-        if(confirm('确认删除所有名称为"'+t.title+'"的任务？')){
-          delRecur(t.title);
+        if(confirm('确认删除这个固定任务系列？')){
+          delRecur(t.recurId,t.title);
         }
       }));
     }
@@ -1157,6 +1270,7 @@ function renderProgress(){
 // DATA MIGRATION — 修复旧数据缺少 recurId 的问题
 // =============================================
 function migrateRecurIds(){
+  normalizeData();
   // 按 title+start+end 分组，补充 recurId
   const groups={};
   Object.keys(tasks).forEach(k=>{
@@ -1265,17 +1379,20 @@ function delTask(id){
   urgents=urgents.filter(x=>x.id!==id);delete timers[id];updateUrgBadge();saveData();render();
   refreshPanelIfOpen();toast('已删除');
 }
-function delRecur(title){
-  // 按任务名称删除所有同名任务（视为同系列）
+function delRecur(recurId,title){
   let count=0;
   Object.keys(tasks).forEach(k=>{
     tasks[k]=tasks[k].filter(t=>{
-      if(t.title===title){count++;return false;}
+      const sameSeries=recurId&&t.recurId===recurId;
+      const legacySeries=!recurId&&t.recur&&title&&t.title===title;
+      if(sameSeries||legacySeries){count++;delete timers[t.id];return false;}
       return true;
     });
   });
+  urgents=urgents.filter(u=>!(recurId&&u.recurId===recurId));
   saveData();render();
-  toast(count>0?('已删除全部'+count+'个同系列任务（'+title+'）'):'未找到同名任务');
+  refreshPanelIfOpen();
+  toast(count>0?('已删除全部 '+count+' 个同系列任务'):'未找到同系列任务');
 }
 
 // =============================================
@@ -1290,9 +1407,8 @@ function openDetail(id,d){
   document.getElementById('dm-end').value=t.end;
   const sel=document.getElementById('dm-color');
   sel.innerHTML='';COLORS.forEach(c=>{const o=new Option(c.name,c.id);if(c.id===t.color)o.selected=true;sel.appendChild(o);});
-  // 删全系列始终显示（按名称匹配）
-  const seriesBtn=document.getElementById('dm-del-series');
-  if(seriesBtn)seriesBtn.style.display='inline-block';
+  const canDeleteSeries=!!(t.recur||t.recurId);
+  document.querySelectorAll('.dm-del-series').forEach(btn=>{btn.style.display=canDeleteSeries?'inline-block':'none';});
   // 更新计时按钮状态
   const td2=timers[t.id]||{running:false};
   const timerBtn=document.getElementById('dm-btn-timer');
@@ -1313,8 +1429,10 @@ function deleteSeriesFromDetail(){
   const ts=tasks[detailCtx.dk];if(!ts)return;
   const t=ts.find(x=>x.id===detailCtx.id);
   if(!t)return;
-  if(confirm('确定删除所有名称为【'+t.title+'】的全部同名任务吗？')){
-    delRecur(t.title);closeDetail();
+  const recurId=t.recurId||null;
+  if(!t.recur&&!recurId){toast('这不是固定任务系列');return;}
+  if(confirm('确定删除这个固定任务系列吗？')){
+    delRecur(recurId,t.title);closeDetail();
   }
 }
 function detailToggleTimer(){
@@ -1334,10 +1452,22 @@ function detailMarkDone(){
 function saveDetail(){
   if(!detailCtx)return;const ts=tasks[detailCtx.dk];if(!ts)return;
   const t=ts.find(x=>x.id===detailCtx.id);if(!t)return;
-  t.title=document.getElementById('dm-name').value.trim()||t.title;
-  t.start=document.getElementById('dm-start').value;
-  t.end=document.getElementById('dm-end').value;
+  const title=document.getElementById('dm-name').value.trim()||t.title;
+  const start=document.getElementById('dm-start').value;
+  const end=document.getElementById('dm-end').value;
+  if(t2m(end)<=t2m(start)){toast('结束时间须晚于开始时间');return;}
+  if(hasConflict(new Date(detailCtx.dk.replace(/-/g,'/')),start,end,t.id)){toast('⚠️ 该时段已有任务，请重新设置时间');return;}
+  t.title=title;
+  t.start=start;
+  t.end=end;
   t.color=document.getElementById('dm-color').value;
+  const u=urgents.find(x=>x.id===t.id);
+  if(u){
+    u.title=t.title;
+    u.start=t.start;
+    u.end=t.end;
+    u.color=t.color;
+  }
   closeDetail();saveData();render();toast('已保存');
 }
 
@@ -1423,15 +1553,15 @@ function loadSplashBgFile(input){
   const r=new FileReader();
   r.onload=e=>{
     const url=e.target.result;
-    const splash=document.getElementById('splash');
-    if(splash)splash.style.backgroundImage='url('+url+')';
+    const layer=document.getElementById('splash-bg-layer');
+    if(layer)layer.style.backgroundImage='url('+url+')';
     try{localStorage.setItem('planner_splash_bg',url);}catch(e){}
     toast('起始页背景已设置');
   };r.readAsDataURL(file);
 }
 function clearSplashBg(){
-  const splash=document.getElementById('splash');
-  if(splash)splash.style.backgroundImage='none';
+  const layer=document.getElementById('splash-bg-layer');
+  if(layer)layer.style.backgroundImage='none';
   try{localStorage.removeItem('planner_splash_bg');}catch(e){}
   toast('起始页背景已清除');
 }
@@ -1443,12 +1573,13 @@ function updateBgOp(v){document.getElementById('bg-op-val').textContent=v+'%';if
 // =============================================
 // THEME
 // =============================================
-function setTheme(t){
+function setTheme(t,silent=false){
   const dark={bg0:'#111211',bg1:'#1a1c1a',bg2:'#222522',bg3:'#2a2d2a',txt0:'#e8ede8',txt1:'#a8b5a8',txt2:'#6a7a6a',txt3:'#3a4a3a'};
   const light={bg0:'#f7f6f3',bg1:'#ffffff',bg2:'#f0ede8',bg3:'#e8e4de',txt0:'#1a1816',txt1:'#4a4540',txt2:'#8a837a',txt3:'#c0b8b0'};
   const map=t==='dark'?dark:light;
   Object.keys(map).forEach(k=>document.documentElement.style.setProperty('--'+k,map[k]));
-  localStorage.setItem('planner_theme',t);toast('主题已切换');
+  localStorage.setItem('planner_theme',t);
+  if(!silent)toast('主题已切换');
 }
 
 // =============================================
@@ -1547,7 +1678,7 @@ function switchUser(){
     localStorage.removeItem('planner_username');
     localStorage.removeItem('planner_pwdhash');
   }catch(e){}
-  tasks={};urgents={};currentUser='';
+  tasks={};urgents=[];timers={};currentUser='';
   render();showUserLogin();
 }
 
@@ -1582,20 +1713,26 @@ function saveData(){
 
 async function loadData(){
   if(!currentUser)return;
+  const requestedUser=currentUser;
   // 先读 localStorage 快速显示
   try{
     const t=localStorage.getItem(getUserKey('tasks'));if(t)tasks=JSON.parse(t);
     const u=localStorage.getItem(getUserKey('urgents'));if(u)urgents=JSON.parse(u);
-    const th=localStorage.getItem('planner_theme');if(th)setTheme(th);
+    const th=localStorage.getItem('planner_theme');if(th)setTheme(th,true);
   }catch(e){}
+  normalizeData();migrateRecurIds();
   render();updateUrgBadge();
   // 再从 Supabase 拉最新数据
   toast('正在同步云端数据…');
   const [cloudTasks,cloudUrgents]=await Promise.all([sbGet(getUserKey('tasks')),sbGet(getUserKey('urgents'))]);
+  if(requestedUser!==currentUser)return;
   if(cloudTasks){tasks=cloudTasks;try{localStorage.setItem(getUserKey('tasks'),JSON.stringify(tasks));}catch(e){}}
   if(cloudUrgents){urgents=cloudUrgents;try{localStorage.setItem(getUserKey('urgents'),JSON.stringify(urgents));}catch(e){}}
+  normalizeData();migrateRecurIds();
   updateUrgBadge();render();
-  toast('同步完成 ☁ 当前用户：'+currentUser);
+  let userName='当前用户';
+  try{userName=localStorage.getItem('planner_username')||userName;}catch(e){}
+  toast('同步完成 ☁ '+userName);
 }
 function exportData(){
   const blob=new Blob([JSON.stringify({tasks,urgents,v:2,at:new Date().toISOString()},null,2)],{type:'application/json'});
@@ -1603,7 +1740,7 @@ function exportData(){
 }
 function importData(input){
   const file=input.files[0];if(!file)return;
-  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);tasks=d.tasks||{};urgents=d.urgents||[];saveData();updateUrgBadge();render();toast('导入成功');}catch(err){toast('格式不正确');}};r.readAsText(file);
+  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);tasks=d.tasks||{};urgents=d.urgents||[];normalizeData();migrateRecurIds();saveData();updateUrgBadge();render();toast('导入成功');}catch(err){toast('格式不正确');}};r.readAsText(file);
 }
 
 // =============================================
@@ -1735,6 +1872,7 @@ function updateTimers(){
 // RENDER & INIT
 // =============================================
 function render(){
+  normalizeData();
   // 更新设置页用户名显示
   const ul=document.getElementById('current-user-label');
   if(ul){
@@ -1773,6 +1911,7 @@ migrateRecurIds();goToday();render();updateUrgBadge();loadSplashBg();
 (function(){const mpb=document.getElementById('mob-panel-btn');if(mpb&&mob())mpb.style.display='flex';})();
 
 loadWeather();
+updateClock();
 setInterval(()=>{updateClock();updateTimers();},1000);
 setInterval(()=>{chkOverdue();if(curView==='week')renderWeek();else renderDay();renderTaskList();renderFreeSlots();},30000);
 
@@ -1816,10 +1955,6 @@ function showTaskAlert(t){
   setTimeout(()=>{const a=document.getElementById('task-alert');if(a)a.style.opacity='0';setTimeout(()=>{const a=document.getElementById('task-alert');if(a)a.remove();},400);},10000);
 }
 window.addEventListener('resize',()=>{const mpb=document.getElementById('mob-panel-btn');if(mpb)mpb.style.display=mob()?'flex':'none';});
-
-// 异步加载云端数据（启动时）
-loadData();
 </script>
 </body>
 </html>
-
